@@ -30,7 +30,7 @@ export default function MonthCloseCard({
           className="month-close-track mt-2.5 h-1.5 w-full overflow-hidden rounded-full bg-white/55 sm:mt-3"
         >
           <div
-            className="month-close-fill h-full animate-progress rounded-full bg-[#0a8fcc]"
+            className="month-close-fill h-full rounded-full bg-[#0a8fcc]"
             style={{ '--progress-width': `${fillPercent}%` }}
           />
         </div>

@@ -4,16 +4,20 @@ import GlassCard from './GlassCard'
 import Logo from './Logo'
 import MonthCloseCard from './MonthCloseCard'
 
-const fadeDelay = (milliseconds) => ({
-  animationDelay: `${milliseconds}ms`,
+const enterStyle = (delaySeconds, durationSeconds, shift) => ({
+  '--enter-delay': `${delaySeconds}s`,
+  '--enter-duration': `${durationSeconds}s`,
+  ...(shift ? { '--enter-shift': shift } : null),
 })
 
-export default function Hero() {
+export default function Hero({ entering = false }) {
   return (
     <section
       id="top"
       aria-labelledby="hero-heading"
-      className="relative isolate min-h-screen w-full overflow-hidden bg-hero-gradient font-sans text-white"
+      className={`hero-root relative isolate min-h-screen w-full overflow-hidden bg-hero-gradient font-sans text-white${
+        entering ? ' is-entering' : ''
+      }`}
     >
       <BackgroundArrows />
 
@@ -21,13 +25,16 @@ export default function Hero() {
         <div className="flex w-full flex-col gap-16 px-6 py-10 sm:px-10 sm:py-12 lg:block lg:p-0">
           {/* ── Left column: message and actions ─────────────────────── */}
           <div className="hero-copy flex w-full flex-col items-start">
-            <div className="hero-logo">
+            <div
+              className="hero-logo hero-enter hero-enter-logo"
+              style={enterStyle(0, 0.15)}
+            >
               <Logo />
             </div>
 
             <p
-              className="hero-tagline mt-[50px] animate-fade-up text-[10px] font-semibold uppercase leading-none tracking-[0.04em] text-white"
-              style={fadeDelay(60)}
+              className="hero-tagline mt-[50px] hero-enter text-[10px] font-semibold uppercase leading-none tracking-[0.04em] text-white"
+              style={enterStyle(0.1, 0.25, '8px')}
             >
               The financial picture, connected.
             </p>
@@ -38,28 +45,28 @@ export default function Hero() {
               className="hero-title mt-5 text-[clamp(46px,14.3vw,56px)] font-black italic leading-[0.9] tracking-[-0.005em] text-white sm:text-[clamp(56px,8.7vw,112px)]"
             >
               <span
-                className="block animate-fade-up whitespace-nowrap"
-                style={fadeDelay(140)}
+                className="block hero-enter whitespace-nowrap"
+                style={enterStyle(0.2, 0.35, '12px')}
               >
                 Clarify From
               </span>
               <span
-                className="block animate-fade-up whitespace-nowrap"
-                style={fadeDelay(240)}
+                className="block hero-enter whitespace-nowrap"
+                style={enterStyle(0.29, 0.35, '12px')}
               >
                 Entry To
               </span>
               <span
-                className="block animate-fade-up whitespace-nowrap"
-                style={fadeDelay(340)}
+                className="block hero-enter whitespace-nowrap"
+                style={enterStyle(0.38, 0.35, '12px')}
               >
                 Report.
               </span>
             </h1>
 
             <p
-              className="hero-subtitle mt-6 max-w-[510px] animate-fade-up text-[15px] italic leading-[1.25] text-white/95 sm:text-base"
-              style={fadeDelay(460)}
+              className="hero-subtitle mt-6 max-w-[510px] hero-enter text-[15px] italic leading-[1.25] text-white/95 sm:text-base"
+              style={enterStyle(0.5, 0.3, '8px')}
             >
               EnovAcc brings your financial workflow into one secure place,
               <br />
@@ -67,8 +74,8 @@ export default function Hero() {
             </p>
 
             <div
-              className="hero-actions mt-7 flex w-full animate-fade-up flex-col gap-3.5 sm:w-auto sm:flex-row sm:items-center"
-              style={fadeDelay(580)}
+              className="hero-actions mt-7 flex w-full hero-enter flex-col gap-3.5 sm:w-auto sm:flex-row sm:items-center"
+              style={enterStyle(0.58, 0.27, '8px')}
             >
               <a
                 href="#sign-in"

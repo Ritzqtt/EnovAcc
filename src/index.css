@@ -21,6 +21,9 @@
     #00214f 100%
   );
 
+  /* Master multiplier for the landing entrance: 1 = normal, 2 = half speed. */
+  --enter-speed: 1;
+
   color-scheme: light;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -277,9 +280,82 @@
   }
 }
 
+/* ── Landing entrance ──────────────────────────────────────────────────────
+   Timings are driven from JSX via --enter-delay / --enter-duration, and all
+   of them are multiplied by the single --enter-speed knob in :root. */
+
+.hero-root .hero-enter {
+  opacity: 0;
+  will-change: opacity, transform;
+}
+
+.hero-root.is-entering .hero-enter {
+  animation-name: hero-enter-rise;
+  animation-duration: calc(var(--enter-duration, 0.3s) * var(--enter-speed));
+  animation-delay: calc(var(--enter-delay, 0s) * var(--enter-speed));
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  animation-fill-mode: both;
+}
+
+.hero-root.is-entering .hero-enter-logo {
+  animation-name: hero-enter-pop;
+}
+
+@keyframes hero-enter-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, var(--enter-shift, 8px), 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes hero-enter-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* The month-close bar fills once as the page enters; the 82% label is static. */
+.hero-root .month-close-fill {
+  width: 0;
+}
+
+.hero-root.is-entering .month-close-fill {
+  animation: hero-enter-progress calc(1.4s * var(--enter-speed))
+    cubic-bezier(0.22, 1, 0.36, 1) calc(0s * var(--enter-speed)) both;
+}
+
+@keyframes hero-enter-progress {
+  from {
+    width: 0%;
+  }
+  to {
+    width: var(--progress-width);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+
+  .hero-root .hero-enter {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+
+  .hero-root .month-close-fill {
+    width: var(--progress-width);
+    animation: none;
   }
 
   *,
