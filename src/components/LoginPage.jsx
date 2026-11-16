@@ -149,11 +149,6 @@ export default function LoginPage({
               {signingIn ? "Signing in…" : "Sign In to EnovAcc  →"}
             </button>
 
-            <p className="text-[14px] leading-5 text-[#637a8a]">
-              Demo: any email with the password{" "}
-              <span className="font-bold text-[#021820]">demo</span>.
-            </p>
-
             <hr className="m-0 h-px w-full border-0 bg-[#dce5ea]" />
 
             <p className="text-[16px] font-bold leading-4 text-[#637a8a]">LOGIN AS:</p>

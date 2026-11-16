@@ -2,11 +2,17 @@ import { useState } from 'react'
 import Hero from './components/Hero'
 import LoadingScreen from './components/LoadingScreen'
 import LoginPage from './components/LoginPage'
+import SigningInPage from './components/SigningInPage'
 
 function App() {
   const [loading, setLoading] = useState(true)
   const [entering, setEntering] = useState(false)
-  const [page, setPage] = useState('landing') // 'landing' | 'login' | 'dashboard'
+  const [page, setPage] = useState('landing') // 'landing' | 'login' | 'signing-in' | 'dashboard'
+
+  const acceptCredentials = () => {
+    setPage('signing-in')
+    setTimeout(() => setPage('dashboard'), 2200)
+  }
 
   if (page === 'dashboard') {
     return (
@@ -19,6 +25,10 @@ function App() {
     )
   }
 
+  if (page === 'signing-in') {
+    return <SigningInPage />
+  }
+
   if (page === 'login') {
     return (
       <LoginPage
@@ -26,9 +36,9 @@ function App() {
         onSignIn={async (email, password) => {
           await new Promise((r) => setTimeout(r, 600))
           if (password !== 'demo') throw new Error('bad login')
-          setPage('dashboard')
+          acceptCredentials()
         }}
-        onDemoLogin={() => setPage('dashboard')}
+        onDemoLogin={acceptCredentials}
         onCreateAccount={() =>
           window.alert('Account creation is coming soon.')
         }
