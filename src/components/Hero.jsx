@@ -10,7 +10,7 @@ const enterStyle = (delaySeconds, durationSeconds, shift) => ({
   ...(shift ? { '--enter-shift': shift } : null),
 })
 
-export default function Hero({ entering = false, onLogin }) {
+export default function Hero({ entering = false, onLogin, onCreateAccount }) {
   return (
     <section
       id="top"
@@ -93,6 +93,20 @@ export default function Hero({ entering = false, onLogin }) {
                   →
                 </span>
               </a>
+
+              <button
+                type="button"
+                onClick={onCreateAccount}
+                className="hero-cta group inline-flex h-[34px] w-full items-center justify-center gap-2 rounded-[4px] border border-white/40 bg-transparent px-4 text-[11px] font-bold tracking-[0.01em] text-white transition-colors duration-200 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-brand-ocean sm:w-auto"
+              >
+                Create an account
+                <span
+                  aria-hidden="true"
+                  className="transition-transform duration-200 group-hover:translate-x-0.5"
+                >
+                  →
+                </span>
+              </button>
             </div>
           </div>
 

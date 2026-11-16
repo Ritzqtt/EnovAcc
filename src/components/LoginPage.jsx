@@ -1,7 +1,5 @@
 import { useState } from "react";
 
-const DEMO_ROLES = ["Accountant", "Manager", "Admin"];
-
 const textLink =
   "p-0 text-[16px] leading-[22px] text-[#0693c7] hover:underline focus-visible:rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0693c7]";
 
@@ -11,12 +9,10 @@ const inputClass =
 /**
  * Props:
  *  onSignIn(email, password)  async; throw/reject to show the "sign in failed" message
- *  onDemoLogin(role)          called for the Accountant / Manager / Admin buttons
  *  onBackToLanding, onCreateAccount, onForgotPassword  navigation callbacks
  */
 export default function LoginPage({
   onSignIn,
-  onDemoLogin,
   onBackToLanding,
   onCreateAccount,
   onForgotPassword,
@@ -150,21 +146,6 @@ export default function LoginPage({
             </button>
 
             <hr className="m-0 h-px w-full border-0 bg-[#dce5ea]" />
-
-            <p className="text-[16px] font-bold leading-4 text-[#637a8a]">LOGIN AS:</p>
-            <div className="flex w-full gap-2">
-              {DEMO_ROLES.map((role) => (
-                <button
-                  key={role}
-                  type="button"
-                  disabled={signingIn}
-                  onClick={() => onDemoLogin?.(role)}
-                  className="box-border inline-flex h-11 flex-1 items-center justify-center rounded-lg border border-[#dce5ea] bg-white p-3 text-[15px] font-bold leading-5 text-[#02355d] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#02355d] disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {role}
-                </button>
-              ))}
-            </div>
 
             <button type="button" onClick={onCreateAccount} className={textLink}>
               Create an account
