@@ -4,6 +4,7 @@ import LoadingScreen from './components/LoadingScreen'
 import LoginPage from './components/LoginPage'
 import CreateAccountPage from './components/CreateAccountPage'
 import SigningInPage from './components/SigningInPage'
+import PageTransition from './components/PageTransition'
 
 function App() {
   const [loading, setLoading] = useState(true)
@@ -15,8 +16,10 @@ function App() {
     setTimeout(() => setPage('dashboard'), 2200)
   }
 
+  let content
+
   if (page === 'dashboard') {
-    return (
+    content = (
       <div className="p-10">
         <h1 className="text-2xl font-bold">Dashboard (coming soon)</h1>
         <button className="mt-4 underline" onClick={() => setPage('landing')}>
@@ -24,14 +27,10 @@ function App() {
         </button>
       </div>
     )
-  }
-
-  if (page === 'signing-in') {
-    return <SigningInPage />
-  }
-
-  if (page === 'create-account') {
-    return (
+  } else if (page === 'signing-in') {
+    content = <SigningInPage />
+  } else if (page === 'create-account') {
+    content = (
       <CreateAccountPage
         onBackToLanding={() => setPage('landing')}
         onSignIn={() => setPage('login')}
@@ -42,10 +41,8 @@ function App() {
         }}
       />
     )
-  }
-
-  if (page === 'login') {
-    return (
+  } else if (page === 'login') {
+    content = (
       <LoginPage
         onBackToLanding={() => setPage('landing')}
         onSignIn={async (email, password) => {
@@ -53,30 +50,31 @@ function App() {
           if (password !== 'demo') throw new Error('bad login')
           acceptCredentials()
         }}
-        onDemoLogin={acceptCredentials}
         onCreateAccount={() => setPage('create-account')}
         onForgotPassword={() =>
           window.alert('Password reset is coming soon.')
         }
       />
     )
+  } else {
+    content = (
+      <>
+        <Hero
+          entering={entering}
+          onLogin={() => setPage('login')}
+          onCreateAccount={() => setPage('create-account')}
+        />
+        {loading ? (
+          <LoadingScreen
+            onReveal={() => setEntering(true)}
+            onDone={() => setLoading(false)}
+          />
+        ) : null}
+      </>
+    )
   }
 
-  return (
-    <>
-      <Hero
-        entering={entering}
-        onLogin={() => setPage('login')}
-        onCreateAccount={() => setPage('create-account')}
-      />
-      {loading ? (
-        <LoadingScreen
-          onReveal={() => setEntering(true)}
-          onDone={() => setLoading(false)}
-        />
-      ) : null}
-    </>
-  )
+  return <PageTransition pageKey={page}>{content}</PageTransition>
 }
 
 export default App
