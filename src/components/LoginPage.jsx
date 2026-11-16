@@ -21,11 +21,19 @@ export default function LoginPage({
   const [password, setPassword] = useState("");
   const [signingIn, setSigningIn] = useState(false);
   const [error, setError] = useState(null);
+  const [fieldErrors, setFieldErrors] = useState({});
 
   async function handleSubmit(e) {
     e.preventDefault();
     if (signingIn) return;
     setError(null);
+
+    const nextErrors = {};
+    if (!email.trim()) nextErrors.email = "Email address is required.";
+    if (!password) nextErrors.password = "Password is required.";
+    setFieldErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) return;
+
     setSigningIn(true);
     try {
       await onSignIn(email.trim(), password);
@@ -113,11 +121,19 @@ export default function LoginPage({
                 autoComplete="email"
                 placeholder="Enter Email Address"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                aria-invalid={error ? true : undefined}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (fieldErrors.email) {
+                    setFieldErrors((prev) => ({ ...prev, email: "" }));
+                  }
+                }}
+                aria-invalid={fieldErrors.email ? true : undefined}
                 required
                 className={inputClass}
               />
+              {fieldErrors.email && (
+                <p className="text-sm leading-5 text-[#e5484d]">{fieldErrors.email}</p>
+              )}
             </div>
 
             <div className="flex w-full flex-col gap-2">
@@ -130,16 +146,24 @@ export default function LoginPage({
                 autoComplete="current-password"
                 placeholder="Enter Password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                aria-invalid={error ? true : undefined}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (fieldErrors.password) {
+                    setFieldErrors((prev) => ({ ...prev, password: "" }));
+                  }
+                }}
+                aria-invalid={fieldErrors.password ? true : undefined}
                 required
                 className={inputClass}
               />
+              {fieldErrors.password && (
+                <p className="text-sm leading-5 text-[#e5484d]">{fieldErrors.password}</p>
+              )}
             </div>
 
             <button
               type="submit"
-              disabled={signingIn || !email || !password}
+              disabled={signingIn}
               className="box-border inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#38bdf8] p-3 text-[15px] font-bold leading-5 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#02355d] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {signingIn ? "Signing in…" : "Sign In to EnovAcc  →"}

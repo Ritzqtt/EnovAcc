@@ -22,19 +22,29 @@ export default function CreateAccountPage({
   const [confirmPassword, setConfirmPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [fieldErrors, setFieldErrors] = useState({});
 
-  const passwordsMatch = password === confirmPassword;
-  const canSubmit =
-    fullName.trim() && email.trim() && password && confirmPassword && passwordsMatch;
+  const clearFieldError = (field) => {
+    setFieldErrors((prev) => (prev[field] ? { ...prev, [field]: "" } : prev));
+  };
 
   async function handleSubmit(e) {
     e.preventDefault();
     if (submitting) return;
     setError(null);
-    if (!passwordsMatch) {
-      setError("Passwords do not match. Please try again.");
-      return;
+
+    const nextErrors = {};
+    if (!fullName.trim()) nextErrors.fullName = "Full name is required.";
+    if (!email.trim()) nextErrors.email = "Work email is required.";
+    if (!password) nextErrors.password = "Password is required.";
+    if (!confirmPassword) {
+      nextErrors.confirmPassword = "Please confirm your password.";
+    } else if (password !== confirmPassword) {
+      nextErrors.confirmPassword = "Passwords do not match.";
     }
+    setFieldErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) return;
+
     setSubmitting(true);
     try {
       await onCreateAccount({ fullName: fullName.trim(), email: email.trim(), password });
@@ -124,10 +134,17 @@ export default function CreateAccountPage({
                 autoComplete="name"
                 placeholder="Enter Full Name"
                 value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
+                onChange={(e) => {
+                  setFullName(e.target.value);
+                  clearFieldError("fullName");
+                }}
+                aria-invalid={fieldErrors.fullName ? true : undefined}
                 required
                 className={inputClass}
               />
+              {fieldErrors.fullName && (
+                <p className="text-sm leading-5 text-[#e5484d]">{fieldErrors.fullName}</p>
+              )}
             </div>
 
             <div className="flex w-full flex-col gap-2">
@@ -140,10 +157,17 @@ export default function CreateAccountPage({
                 autoComplete="email"
                 placeholder="Enter Work Email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  clearFieldError("email");
+                }}
+                aria-invalid={fieldErrors.email ? true : undefined}
                 required
                 className={inputClass}
               />
+              {fieldErrors.email && (
+                <p className="text-sm leading-5 text-[#e5484d]">{fieldErrors.email}</p>
+              )}
             </div>
 
             <div className="flex w-full flex-col gap-2">
@@ -156,10 +180,17 @@ export default function CreateAccountPage({
                 autoComplete="new-password"
                 placeholder="Enter Password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  clearFieldError("password");
+                }}
+                aria-invalid={fieldErrors.password ? true : undefined}
                 required
                 className={inputClass}
               />
+              {fieldErrors.password && (
+                <p className="text-sm leading-5 text-[#e5484d]">{fieldErrors.password}</p>
+              )}
             </div>
 
             <div className="flex w-full flex-col gap-2">
@@ -172,16 +203,24 @@ export default function CreateAccountPage({
                 autoComplete="new-password"
                 placeholder="Re-enter Password"
                 value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                aria-invalid={confirmPassword && !passwordsMatch ? true : undefined}
+                onChange={(e) => {
+                  setConfirmPassword(e.target.value);
+                  clearFieldError("confirmPassword");
+                }}
+                aria-invalid={fieldErrors.confirmPassword ? true : undefined}
                 required
                 className={inputClass}
               />
+              {fieldErrors.confirmPassword && (
+                <p className="text-sm leading-5 text-[#e5484d]">
+                  {fieldErrors.confirmPassword}
+                </p>
+              )}
             </div>
 
             <button
               type="submit"
-              disabled={submitting || !canSubmit}
+              disabled={submitting}
               className="box-border inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#38bdf8] p-3 text-[15px] font-bold leading-5 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#02355d] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {submitting ? "Creating account…" : "Create Account  →"}

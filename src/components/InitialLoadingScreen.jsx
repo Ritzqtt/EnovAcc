@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import './LoadingScreen.css'
+import './InitialLoadingScreen.css'
 
 /**
  * Wave tuning — all amplitudes are in em of the wordmark font size.
@@ -45,7 +45,7 @@ const smoothstep = (edge0, edge1, value) => {
  * percentage label. Only clip-path is written per frame; element dimensions
  * are measured once per resize.
  */
-export default function LoadingScreen({ onDone, onReveal }) {
+export default function InitialLoadingScreen({ onDone, onReveal }) {
   const [phase, setPhase] = useState('loading')
   const [reduced] = useState(() =>
     window.matchMedia('(prefers-reduced-motion: reduce)').matches,

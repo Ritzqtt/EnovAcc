@@ -1,4 +1,4 @@
-export default function SigningInPage() {
+export default function CreateAccountLoadingPage() {
   return (
     <main className="grid min-h-screen grid-cols-1 bg-white font-['Inter',system-ui,sans-serif] text-[#021820] lg:grid-cols-[900fr_1020fr]">
       {/* Brand side (hidden on small screens) */}
@@ -35,7 +35,7 @@ export default function SigningInPage() {
         </p>
       </section>
 
-      {/* Signing-in side */}
+      {/* Creating-account side */}
       <section
         role="status"
         aria-live="polite"
@@ -43,10 +43,10 @@ export default function SigningInPage() {
       >
         <div className="flex w-full max-w-[500px] flex-col items-center text-center">
           <h2 className="text-[clamp(28px,4.4vw,42px)] font-bold leading-[1.1] text-[#021820]">
-            Opening your workspace
+            Creating your account…
           </h2>
           <p className="mt-3 text-[16px] leading-[22px] text-[#637a8a]">
-            Your credentials have been accepted
+            Please wait while we prepare your workspace
           </p>
 
           <div className="mt-10 flex flex-col items-center gap-4">
@@ -55,7 +55,7 @@ export default function SigningInPage() {
               className="h-12 w-12 animate-spin rounded-full border-4 border-[#dce5ea] border-t-[#0693c7]"
             />
             <p className="text-[16px] font-bold leading-5 text-[#0693c7]">
-              Loading EnovAcc
+              Checking your details and sending a code
             </p>
           </div>
         </div>
