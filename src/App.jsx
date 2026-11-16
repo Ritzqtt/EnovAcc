@@ -5,13 +5,14 @@ import LoginPage from './components/LoginPage'
 import CreateAccountPage from './components/CreateAccountPage'
 import CreateAccountLoadingPage from './components/CreateAccountLoadingPage'
 import VerifyEmailPage from './components/VerifyEmailPage'
+import AccountVerifiedPage from './components/AccountVerifiedPage'
 import SigningInLoadingPage from './components/SigningInLoadingPage'
 import PageTransition from './components/PageTransition'
 
 function App() {
   const [loading, setLoading] = useState(true)
   const [entering, setEntering] = useState(false)
-  const [page, setPage] = useState('landing') // 'landing' | 'login' | 'create-account' | 'creating-account' | 'verify-email' | 'signing-in' | 'dashboard'
+  const [page, setPage] = useState('landing') // 'landing' | 'login' | 'create-account' | 'creating-account' | 'verify-email' | 'account-verified' | 'signing-in' | 'dashboard'
   const [pendingEmail, setPendingEmail] = useState('')
 
   const acceptCredentials = () => {
@@ -47,10 +48,17 @@ function App() {
         onBackToLanding={() => setPage('landing')}
         onVerify={async () => {
           await new Promise((r) => setTimeout(r, 600))
-          setPage('login')
+          setPage('account-verified')
         }}
         onResend={() => window.alert('We sent a new code to ' + pendingEmail)}
         onUseDifferentEmail={() => setPage('create-account')}
+      />
+    )
+  } else if (page === 'account-verified') {
+    content = (
+      <AccountVerifiedPage
+        onBackToLanding={() => setPage('landing')}
+        onContinueToSignIn={() => setPage('login')}
       />
     )
   } else if (page === 'create-account') {
