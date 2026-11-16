@@ -1,4 +1,4 @@
-export default function SigningInPage() {
+export default function SigningInLoadingPage() {
   return (
     <main className="grid min-h-screen grid-cols-1 bg-white font-['Inter',system-ui,sans-serif] text-[#021820] lg:grid-cols-[900fr_1020fr]">
       {/* Brand side (hidden on small screens) */}

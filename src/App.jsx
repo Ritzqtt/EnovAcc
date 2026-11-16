@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import Hero from './components/Hero'
-import LoadingScreen from './components/LoadingScreen'
+import InitialLoadingScreen from './components/InitialLoadingScreen'
 import LoginPage from './components/LoginPage'
 import CreateAccountPage from './components/CreateAccountPage'
 import CreateAccountLoadingPage from './components/CreateAccountLoadingPage'
-import SigningInPage from './components/SigningInPage'
+import SigningInLoadingPage from './components/SigningInLoadingPage'
 import PageTransition from './components/PageTransition'
 
 function App() {
@@ -34,7 +34,7 @@ function App() {
       </div>
     )
   } else if (page === 'signing-in') {
-    content = <SigningInPage />
+    content = <SigningInLoadingPage />
   } else if (page === 'creating-account') {
     content = <CreateAccountLoadingPage />
   } else if (page === 'create-account') {
@@ -73,7 +73,7 @@ function App() {
           onCreateAccount={() => setPage('create-account')}
         />
         {loading ? (
-          <LoadingScreen
+          <InitialLoadingScreen
             onReveal={() => setEntering(true)}
             onDone={() => setLoading(false)}
           />
