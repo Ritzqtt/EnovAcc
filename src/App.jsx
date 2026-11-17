@@ -7,6 +7,7 @@ import CreateAccountLoadingPage from './components/CreateAccountLoadingPage'
 import VerifyEmailPage from './components/VerifyEmailPage'
 import AccountVerifiedPage from './components/AccountVerifiedPage'
 import AccountCreationFailedPage from './components/AccountCreationFailedPage'
+import VerificationFailedPage from './components/VerificationFailedPage'
 import ForgotPasswordPage from './components/ForgotPasswordPage'
 import SendingResetLinkPage from './components/SendingResetLinkPage'
 import ResetLinkSentPage from './components/ResetLinkSentPage'
@@ -19,7 +20,7 @@ import PageTransition from './components/PageTransition'
 function App() {
   const [loading, setLoading] = useState(true)
   const [entering, setEntering] = useState(false)
-  const [page, setPage] = useState('landing') // 'landing' | 'login' | 'create-account' | 'creating-account' | 'account-failed' | 'verify-email' | 'account-verified' | 'forgot-password' | 'sending-reset-link' | 'check-inbox' | 'reset-password' | 'saving-password' | 'password-updated' | 'signing-in' | 'dashboard'
+  const [page, setPage] = useState('landing') // 'landing' | 'login' | 'create-account' | 'creating-account' | 'account-failed' | 'verify-email' | 'verification-failed' | 'account-verified' | 'forgot-password' | 'sending-reset-link' | 'check-inbox' | 'reset-password' | 'saving-password' | 'password-updated' | 'signing-in' | 'dashboard'
   const [pendingEmail, setPendingEmail] = useState('')
   const [registeredEmails, setRegisteredEmails] = useState([])
 
@@ -55,12 +56,25 @@ function App() {
       <VerifyEmailPage
         email={pendingEmail}
         onBackToLanding={() => setPage('landing')}
-        onVerify={async () => {
+        onVerify={async (code) => {
           await new Promise((r) => setTimeout(r, 600))
+          if (code !== '123456') throw new Error('invalid code')
           setPage('account-verified')
         }}
+        onVerifyFailed={() => setPage('verification-failed')}
         onResend={() => window.alert('We sent a new code to ' + pendingEmail)}
         onUseDifferentEmail={() => setPage('create-account')}
+      />
+    )
+  } else if (page === 'verification-failed') {
+    content = (
+      <VerificationFailedPage
+        onBackToLanding={() => setPage('landing')}
+        onTryAgain={() => setPage('verify-email')}
+        onSendNewCode={() => {
+          window.alert('We sent a new code to ' + pendingEmail)
+          setPage('verify-email')
+        }}
       />
     )
   } else if (page === 'account-verified') {
