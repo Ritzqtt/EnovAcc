@@ -6,6 +6,7 @@ import CreateAccountPage from './components/CreateAccountPage'
 import CreateAccountLoadingPage from './components/CreateAccountLoadingPage'
 import VerifyEmailPage from './components/VerifyEmailPage'
 import AccountVerifiedPage from './components/AccountVerifiedPage'
+import AccountCreationFailedPage from './components/AccountCreationFailedPage'
 import ForgotPasswordPage from './components/ForgotPasswordPage'
 import SendingResetLinkPage from './components/SendingResetLinkPage'
 import ResetLinkSentPage from './components/ResetLinkSentPage'
@@ -18,8 +19,9 @@ import PageTransition from './components/PageTransition'
 function App() {
   const [loading, setLoading] = useState(true)
   const [entering, setEntering] = useState(false)
-  const [page, setPage] = useState('landing') // 'landing' | 'login' | 'create-account' | 'creating-account' | 'verify-email' | 'account-verified' | 'forgot-password' | 'sending-reset-link' | 'check-inbox' | 'reset-password' | 'saving-password' | 'password-updated' | 'signing-in' | 'dashboard'
+  const [page, setPage] = useState('landing') // 'landing' | 'login' | 'create-account' | 'creating-account' | 'account-failed' | 'verify-email' | 'account-verified' | 'forgot-password' | 'sending-reset-link' | 'check-inbox' | 'reset-password' | 'saving-password' | 'password-updated' | 'signing-in' | 'dashboard'
   const [pendingEmail, setPendingEmail] = useState('')
+  const [registeredEmails, setRegisteredEmails] = useState([])
 
   const acceptCredentials = () => {
     setPage('signing-in')
@@ -27,6 +29,7 @@ function App() {
   }
 
   const submitAccount = (email) => {
+    setRegisteredEmails((prev) => (prev.includes(email) ? prev : [...prev, email]))
     setPendingEmail(email)
     setPage('creating-account')
     setTimeout(() => setPage('verify-email'), 2200)
@@ -119,8 +122,18 @@ function App() {
         onCreateAccount={async ({ fullName, email, password }) => {
           await new Promise((r) => setTimeout(r, 600))
           if (!fullName || !email || !password) throw new Error('missing fields')
+          if (registeredEmails.includes(email)) throw new Error('email taken')
           submitAccount(email)
         }}
+        onAccountFailed={() => setPage('account-failed')}
+      />
+    )
+  } else if (page === 'account-failed') {
+    content = (
+      <AccountCreationFailedPage
+        onBackToLanding={() => setPage('landing')}
+        onTryAgain={() => setPage('create-account')}
+        onResetPassword={() => setPage('forgot-password')}
       />
     )
   } else if (page === 'login') {
