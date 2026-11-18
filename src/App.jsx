@@ -9,6 +9,7 @@ import AccountVerifiedPage from './components/AccountVerifiedPage'
 import AccountCreationFailedPage from './components/AccountCreationFailedPage'
 import VerificationFailedPage from './components/VerificationFailedPage'
 import SignInFailedPage from './components/SignInFailedPage'
+import PasswordResetFailedPage from './components/PasswordResetFailedPage'
 import ForgotPasswordPage from './components/ForgotPasswordPage'
 import SendingResetLinkPage from './components/SendingResetLinkPage'
 import ResetLinkSentPage from './components/ResetLinkSentPage'
@@ -21,7 +22,7 @@ import PageTransition from './components/PageTransition'
 function App() {
   const [loading, setLoading] = useState(true)
   const [entering, setEntering] = useState(false)
-  const [page, setPage] = useState('landing') // 'landing' | 'login' | 'create-account' | 'creating-account' | 'account-failed' | 'verify-email' | 'verification-failed' | 'account-verified' | 'forgot-password' | 'sending-reset-link' | 'check-inbox' | 'reset-password' | 'saving-password' | 'password-updated' | 'signing-in' | 'sign-in-failed' | 'dashboard'
+  const [page, setPage] = useState('landing') // 'landing' | 'login' | 'create-account' | 'creating-account' | 'account-failed' | 'verify-email' | 'verification-failed' | 'account-verified' | 'forgot-password' | 'sending-reset-link' | 'check-inbox' | 'reset-password' | 'password-reset-failed' | 'saving-password' | 'password-updated' | 'signing-in' | 'sign-in-failed' | 'dashboard'
   const [pendingEmail, setPendingEmail] = useState('')
   const [registeredEmails, setRegisteredEmails] = useState([])
 
@@ -114,10 +115,19 @@ function App() {
       <ResetPasswordPage
         onBackToLanding={() => setPage('landing')}
         onBackToSignIn={() => setPage('login')}
+        onResetFailed={() => setPage('password-reset-failed')}
         onSaveNewPassword={async () => {
           setPage('saving-password')
           setTimeout(() => setPage('password-updated'), 2200)
         }}
+      />
+    )
+  } else if (page === 'password-reset-failed') {
+    content = (
+      <PasswordResetFailedPage
+        onBackToLanding={() => setPage('landing')}
+        onTryAgain={() => setPage('reset-password')}
+        onRequestNewLink={() => setPage('forgot-password')}
       />
     )
   } else if (page === 'saving-password') {
