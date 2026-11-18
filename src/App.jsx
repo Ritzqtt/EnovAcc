@@ -8,6 +8,7 @@ import VerifyEmailPage from './components/VerifyEmailPage'
 import AccountVerifiedPage from './components/AccountVerifiedPage'
 import AccountCreationFailedPage from './components/AccountCreationFailedPage'
 import VerificationFailedPage from './components/VerificationFailedPage'
+import SignInFailedPage from './components/SignInFailedPage'
 import ForgotPasswordPage from './components/ForgotPasswordPage'
 import SendingResetLinkPage from './components/SendingResetLinkPage'
 import ResetLinkSentPage from './components/ResetLinkSentPage'
@@ -20,7 +21,7 @@ import PageTransition from './components/PageTransition'
 function App() {
   const [loading, setLoading] = useState(true)
   const [entering, setEntering] = useState(false)
-  const [page, setPage] = useState('landing') // 'landing' | 'login' | 'create-account' | 'creating-account' | 'account-failed' | 'verify-email' | 'verification-failed' | 'account-verified' | 'forgot-password' | 'sending-reset-link' | 'check-inbox' | 'reset-password' | 'saving-password' | 'password-updated' | 'signing-in' | 'dashboard'
+  const [page, setPage] = useState('landing') // 'landing' | 'login' | 'create-account' | 'creating-account' | 'account-failed' | 'verify-email' | 'verification-failed' | 'account-verified' | 'forgot-password' | 'sending-reset-link' | 'check-inbox' | 'reset-password' | 'saving-password' | 'password-updated' | 'signing-in' | 'sign-in-failed' | 'dashboard'
   const [pendingEmail, setPendingEmail] = useState('')
   const [registeredEmails, setRegisteredEmails] = useState([])
 
@@ -159,7 +160,16 @@ function App() {
           if (password !== 'demo') throw new Error('bad login')
           acceptCredentials()
         }}
+        onSignInFailed={() => setPage('sign-in-failed')}
         onCreateAccount={() => setPage('create-account')}
+        onForgotPassword={() => setPage('forgot-password')}
+      />
+    )
+  } else if (page === 'sign-in-failed') {
+    content = (
+      <SignInFailedPage
+        onBackToLanding={() => setPage('landing')}
+        onTryAgain={() => setPage('login')}
         onForgotPassword={() => setPage('forgot-password')}
       />
     )

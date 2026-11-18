@@ -8,11 +8,13 @@ const inputClass =
 
 /**
  * Props:
- *  onSignIn(email, password)  async; throw/reject to show the "sign in failed" message
+ *  onSignIn(email, password)  async; throw/reject on failure
+ *  onSignInFailed             called when sign in fails
  *  onBackToLanding, onCreateAccount, onForgotPassword  navigation callbacks
  */
 export default function LoginPage({
   onSignIn,
+  onSignInFailed,
   onBackToLanding,
   onCreateAccount,
   onForgotPassword,
@@ -20,13 +22,11 @@ export default function LoginPage({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [signingIn, setSigningIn] = useState(false);
-  const [error, setError] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
 
   async function handleSubmit(e) {
     e.preventDefault();
     if (signingIn) return;
-    setError(null);
 
     const nextErrors = {};
     if (!email.trim()) nextErrors.email = "Email address is required.";
@@ -38,7 +38,7 @@ export default function LoginPage({
     try {
       await onSignIn(email.trim(), password);
     } catch {
-      setError("We couldn't sign you in. Check your email and password, then try again.");
+      onSignInFailed();
     } finally {
       setSigningIn(false);
     }
@@ -101,15 +101,6 @@ export default function LoginPage({
             <p className="text-[16px] leading-[22px] text-[#637a8a]">
               Sign in to review, record, and move forward.
             </p>
-
-            {error && (
-              <p
-                role="alert"
-                className="w-full rounded-lg border border-[#e5484d] bg-[#fff5f5] p-3 text-sm leading-5 text-[#a1232a]"
-              >
-                {error}
-              </p>
-            )}
 
             <div className="flex w-full flex-col gap-2">
               <label htmlFor="login-email" className="text-[16px] font-bold leading-5">
