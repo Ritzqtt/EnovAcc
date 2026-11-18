@@ -10,6 +10,8 @@ import AccountCreationFailedPage from './components/AccountCreationFailedPage'
 import VerificationFailedPage from './components/VerificationFailedPage'
 import SignInFailedPage from './components/SignInFailedPage'
 import PasswordResetFailedPage from './components/PasswordResetFailedPage'
+import VerifyingLinkLoadingPage from './components/VerifyingLinkLoadingPage'
+import MatchingPasswordLoadingPage from './components/MatchingPasswordLoadingPage'
 import ForgotPasswordPage from './components/ForgotPasswordPage'
 import SendingResetLinkPage from './components/SendingResetLinkPage'
 import ResetLinkSentPage from './components/ResetLinkSentPage'
@@ -22,7 +24,7 @@ import PageTransition from './components/PageTransition'
 function App() {
   const [loading, setLoading] = useState(true)
   const [entering, setEntering] = useState(false)
-  const [page, setPage] = useState('landing') // 'landing' | 'login' | 'create-account' | 'creating-account' | 'account-failed' | 'verify-email' | 'verification-failed' | 'account-verified' | 'forgot-password' | 'sending-reset-link' | 'check-inbox' | 'reset-password' | 'password-reset-failed' | 'saving-password' | 'password-updated' | 'signing-in' | 'sign-in-failed' | 'dashboard'
+  const [page, setPage] = useState('landing') // 'landing' | 'login' | 'create-account' | 'creating-account' | 'account-failed' | 'verify-email' | 'verification-failed' | 'account-verified' | 'forgot-password' | 'sending-reset-link' | 'check-inbox' | 'verifying-link' | 'reset-password' | 'matching-password' | 'password-reset-failed' | 'saving-password' | 'password-updated' | 'signing-in' | 'sign-in-failed' | 'dashboard'
   const [pendingEmail, setPendingEmail] = useState('')
   const [registeredEmails, setRegisteredEmails] = useState([])
 
@@ -106,22 +108,32 @@ function App() {
         email={pendingEmail}
         onBackToLanding={() => setPage('landing')}
         onBackToSignIn={() => setPage('login')}
-        onOpenResetLink={() => setPage('reset-password')}
+        onOpenResetLink={() => {
+          setPage('verifying-link')
+          setTimeout(() => setPage('reset-password'), 2200)
+        }}
         onResendLink={() => window.alert('We sent a new reset link to ' + pendingEmail)}
       />
     )
+  } else if (page === 'verifying-link') {
+    content = <VerifyingLinkLoadingPage />
   } else if (page === 'reset-password') {
     content = (
       <ResetPasswordPage
         onBackToLanding={() => setPage('landing')}
         onBackToSignIn={() => setPage('login')}
-        onResetFailed={() => setPage('password-reset-failed')}
+        onResetFailed={() => {
+          setPage('matching-password')
+          setTimeout(() => setPage('password-reset-failed'), 2200)
+        }}
         onSaveNewPassword={async () => {
           setPage('saving-password')
           setTimeout(() => setPage('password-updated'), 2200)
         }}
       />
     )
+  } else if (page === 'matching-password') {
+    content = <MatchingPasswordLoadingPage />
   } else if (page === 'password-reset-failed') {
     content = (
       <PasswordResetFailedPage
