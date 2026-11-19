@@ -13,6 +13,16 @@ import PasswordResetFailedPage from './components/PasswordResetFailedPage'
 import VerifyingLinkLoadingPage from './components/VerifyingLinkLoadingPage'
 import MatchingPasswordLoadingPage from './components/MatchingPasswordLoadingPage'
 import Dashboard from './components/Dashboard'
+import ChartOfAccounts from './pages/ChartOfAccounts'
+import JournalEntries from './pages/JournalEntries'
+import GeneralLedger from './pages/GeneralLedger'
+import InvoicesReceivables from './pages/InvoicesReceivables'
+import BillsPayables from './pages/BillsPayables'
+import Expenses from './pages/Expenses'
+import BankReconciliation from './pages/BankReconciliation'
+import FinancialReports from './pages/FinancialReports'
+import TaxSummaries from './pages/TaxSummaries'
+import Integrations from './pages/Integrations'
 import ForgotPasswordPage from './components/ForgotPasswordPage'
 import SendingResetLinkPage from './components/SendingResetLinkPage'
 import ResetLinkSentPage from './components/ResetLinkSentPage'
@@ -22,10 +32,24 @@ import PasswordUpdatedPage from './components/PasswordUpdatedPage'
 import SigningInLoadingPage from './components/SigningInLoadingPage'
 import PageTransition from './components/PageTransition'
 
+const NAV_PAGE = {
+  'Dashboard': 'dashboard',
+  'Chart of accounts': 'chart-of-accounts',
+  'Journal entries': 'journal-entries',
+  'General ledger': 'general-ledger',
+  'Invoices & receivables': 'invoices-receivables',
+  'Bills & payables': 'bills-payables',
+  'Expenses': 'expenses',
+  'Bank reconciliation': 'bank-reconciliation',
+  'Financial reports': 'financial-reports',
+  'Tax summaries': 'tax-summaries',
+  'Integrations': 'integrations',
+}
+
 function App() {
   const [loading, setLoading] = useState(true)
   const [entering, setEntering] = useState(false)
-  const [page, setPage] = useState('landing') // 'landing' | 'login' | 'create-account' | 'creating-account' | 'account-failed' | 'verify-email' | 'verification-failed' | 'account-verified' | 'forgot-password' | 'sending-reset-link' | 'check-inbox' | 'verifying-link' | 'reset-password' | 'matching-password' | 'password-reset-failed' | 'saving-password' | 'password-updated' | 'signing-in' | 'sign-in-failed' | 'dashboard'
+  const [page, setPage] = useState('landing') // 'landing' | 'login' | 'create-account' | 'creating-account' | 'account-failed' | 'verify-email' | 'verification-failed' | 'account-verified' | 'forgot-password' | 'sending-reset-link' | 'check-inbox' | 'verifying-link' | 'reset-password' | 'matching-password' | 'password-reset-failed' | 'saving-password' | 'password-updated' | 'signing-in' | 'sign-in-failed' | modules (see MODULES): 'dashboard' | 'chart-of-accounts' | 'journal-entries' | 'general-ledger' | 'invoices-receivables' | 'bills-payables' | 'expenses' | 'bank-reconciliation' | 'financial-reports' | 'tax-summaries' | 'integrations'
   const [pendingEmail, setPendingEmail] = useState('')
   const [registeredEmails, setRegisteredEmails] = useState([])
 
@@ -41,10 +65,33 @@ function App() {
     setTimeout(() => setPage('verify-email'), 2200)
   }
 
+  const handleNavigate = (label) => {
+    const next = NAV_PAGE[label]
+    if (next) setPage(next)
+  }
+
+  const handleSignOut = () => setPage('landing')
+
+  const moduleProps = { onNavigate: handleNavigate, onSignOut: handleSignOut }
+
+  const MODULES = {
+    'dashboard': <Dashboard {...moduleProps} />,
+    'chart-of-accounts': <ChartOfAccounts {...moduleProps} />,
+    'journal-entries': <JournalEntries {...moduleProps} />,
+    'general-ledger': <GeneralLedger {...moduleProps} />,
+    'invoices-receivables': <InvoicesReceivables {...moduleProps} />,
+    'bills-payables': <BillsPayables {...moduleProps} />,
+    'expenses': <Expenses {...moduleProps} />,
+    'bank-reconciliation': <BankReconciliation {...moduleProps} />,
+    'financial-reports': <FinancialReports {...moduleProps} />,
+    'tax-summaries': <TaxSummaries {...moduleProps} />,
+    'integrations': <Integrations {...moduleProps} />,
+  }
+
   let content
 
-  if (page === 'dashboard') {
-    content = <Dashboard onSignOut={() => setPage('landing')} />
+  if (MODULES[page]) {
+    content = MODULES[page]
   } else if (page === 'signing-in') {
     content = <SigningInLoadingPage />
   } else if (page === 'creating-account') {
