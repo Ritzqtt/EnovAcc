@@ -11,11 +11,13 @@ const MIN_LENGTH = 12;
 /**
  * Props:
  *  onSaveNewPassword(password)  async; throw/reject to show the error message
+ *  onResetFailed                called when the passwords do not match
  *  onBackToSignIn               navigation callback
  *  onBackToLanding              navigation callback
  */
 export default function ResetPasswordPage({
   onSaveNewPassword,
+  onResetFailed,
   onBackToSignIn,
   onBackToLanding,
 }) {
@@ -42,11 +44,14 @@ export default function ResetPasswordPage({
     }
     if (!confirmPassword) {
       nextErrors.confirmPassword = "Please confirm your new password.";
-    } else if (password !== confirmPassword) {
-      nextErrors.confirmPassword = "Passwords do not match.";
     }
     setFieldErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
+
+    if (password !== confirmPassword) {
+      onResetFailed();
+      return;
+    }
 
     setSaving(true);
     try {
