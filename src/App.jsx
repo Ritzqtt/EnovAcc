@@ -12,6 +12,7 @@ import SignInFailedPage from './components/SignInFailedPage'
 import PasswordResetFailedPage from './components/PasswordResetFailedPage'
 import VerifyingLinkLoadingPage from './components/VerifyingLinkLoadingPage'
 import MatchingPasswordLoadingPage from './components/MatchingPasswordLoadingPage'
+import Dashboard from './components/Dashboard'
 import ForgotPasswordPage from './components/ForgotPasswordPage'
 import SendingResetLinkPage from './components/SendingResetLinkPage'
 import ResetLinkSentPage from './components/ResetLinkSentPage'
@@ -43,14 +44,7 @@ function App() {
   let content
 
   if (page === 'dashboard') {
-    content = (
-      <div className="p-10">
-        <h1 className="text-2xl font-bold">Dashboard (coming soon)</h1>
-        <button className="mt-4 underline" onClick={() => setPage('landing')}>
-          Sign out
-        </button>
-      </div>
-    )
+    content = <Dashboard onSignOut={() => setPage('landing')} />
   } else if (page === 'signing-in') {
     content = <SigningInLoadingPage />
   } else if (page === 'creating-account') {
