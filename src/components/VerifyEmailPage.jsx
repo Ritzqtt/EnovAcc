@@ -9,7 +9,8 @@ const inputClass =
 /**
  * Props:
  *  email               the address the code was sent to
- *  onVerify(code)      async; throw/reject to show the error message
+ *  onVerify(code)      async; throw/reject on failure
+ *  onVerifyFailed      called when verification fails
  *  onResend            called for "Resend verification code"
  *  onUseDifferentEmail called for "Use different email"
  *  onBackToLanding     navigation callback
@@ -17,19 +18,18 @@ const inputClass =
 export default function VerifyEmailPage({
   email,
   onVerify,
+  onVerifyFailed,
   onResend,
   onUseDifferentEmail,
   onBackToLanding,
 }) {
   const [code, setCode] = useState("");
   const [verifying, setVerifying] = useState(false);
-  const [error, setError] = useState(null);
   const [fieldError, setFieldError] = useState("");
 
   async function handleSubmit(e) {
     e.preventDefault();
     if (verifying) return;
-    setError(null);
 
     if (!code.trim()) {
       setFieldError("Enter the verification code.");
@@ -41,7 +41,7 @@ export default function VerifyEmailPage({
     try {
       await onVerify(code.trim());
     } catch {
-      setError("That code didn't work. Check it and try again.");
+      onVerifyFailed();
     } finally {
       setVerifying(false);
     }
@@ -107,15 +107,6 @@ export default function VerifyEmailPage({
               We sent a code to{" "}
               <span className="font-bold text-[#021820]">{email}</span>.
             </p>
-
-            {error && (
-              <p
-                role="alert"
-                className="w-full rounded-lg border border-[#e5484d] bg-[#fff5f5] p-3 text-sm leading-5 text-[#a1232a]"
-              >
-                {error}
-              </p>
-            )}
 
             <div className="flex w-full flex-col gap-2">
               <label htmlFor="verify-code" className="text-[16px] font-bold leading-5">

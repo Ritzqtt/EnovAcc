@@ -8,11 +8,13 @@ const inputClass =
 
 /**
  * Props:
- *  onCreateAccount({ fullName, email, password })  async; throw/reject to show the error message
+ *  onCreateAccount({ fullName, email, password })  async; throw/reject on failure
+ *  onAccountFailed  called when account creation fails
  *  onBackToLanding, onSignIn  navigation callbacks
  */
 export default function CreateAccountPage({
   onCreateAccount,
+  onAccountFailed,
   onBackToLanding,
   onSignIn,
 }) {
@@ -21,7 +23,6 @@ export default function CreateAccountPage({
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
 
   const clearFieldError = (field) => {
@@ -31,7 +32,6 @@ export default function CreateAccountPage({
   async function handleSubmit(e) {
     e.preventDefault();
     if (submitting) return;
-    setError(null);
 
     const nextErrors = {};
     if (!fullName.trim()) nextErrors.fullName = "Full name is required.";
@@ -49,7 +49,7 @@ export default function CreateAccountPage({
     try {
       await onCreateAccount({ fullName: fullName.trim(), email: email.trim(), password });
     } catch {
-      setError("We couldn't create your account. Check your details and try again.");
+      onAccountFailed();
     } finally {
       setSubmitting(false);
     }
@@ -114,15 +114,6 @@ export default function CreateAccountPage({
             <p className="text-[16px] leading-[22px] text-[#637a8a]">
               Use your work email — we will send a six-digit verification code.
             </p>
-
-            {error && (
-              <p
-                role="alert"
-                className="w-full rounded-lg border border-[#e5484d] bg-[#fff5f5] p-3 text-sm leading-5 text-[#a1232a]"
-              >
-                {error}
-              </p>
-            )}
 
             <div className="flex w-full flex-col gap-2">
               <label htmlFor="account-fullname" className="text-[16px] font-bold leading-5">

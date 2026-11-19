@@ -6,6 +6,13 @@ import CreateAccountPage from './components/CreateAccountPage'
 import CreateAccountLoadingPage from './components/CreateAccountLoadingPage'
 import VerifyEmailPage from './components/VerifyEmailPage'
 import AccountVerifiedPage from './components/AccountVerifiedPage'
+import AccountCreationFailedPage from './components/AccountCreationFailedPage'
+import VerificationFailedPage from './components/VerificationFailedPage'
+import SignInFailedPage from './components/SignInFailedPage'
+import PasswordResetFailedPage from './components/PasswordResetFailedPage'
+import VerifyingLinkLoadingPage from './components/VerifyingLinkLoadingPage'
+import MatchingPasswordLoadingPage from './components/MatchingPasswordLoadingPage'
+import Dashboard from './components/Dashboard'
 import ForgotPasswordPage from './components/ForgotPasswordPage'
 import SendingResetLinkPage from './components/SendingResetLinkPage'
 import ResetLinkSentPage from './components/ResetLinkSentPage'
@@ -18,8 +25,9 @@ import PageTransition from './components/PageTransition'
 function App() {
   const [loading, setLoading] = useState(true)
   const [entering, setEntering] = useState(false)
-  const [page, setPage] = useState('landing') // 'landing' | 'login' | 'create-account' | 'creating-account' | 'verify-email' | 'account-verified' | 'forgot-password' | 'sending-reset-link' | 'check-inbox' | 'reset-password' | 'saving-password' | 'password-updated' | 'signing-in' | 'dashboard'
+  const [page, setPage] = useState('landing') // 'landing' | 'login' | 'create-account' | 'creating-account' | 'account-failed' | 'verify-email' | 'verification-failed' | 'account-verified' | 'forgot-password' | 'sending-reset-link' | 'check-inbox' | 'verifying-link' | 'reset-password' | 'matching-password' | 'password-reset-failed' | 'saving-password' | 'password-updated' | 'signing-in' | 'sign-in-failed' | 'dashboard'
   const [pendingEmail, setPendingEmail] = useState('')
+  const [registeredEmails, setRegisteredEmails] = useState([])
 
   const acceptCredentials = () => {
     setPage('signing-in')
@@ -27,6 +35,7 @@ function App() {
   }
 
   const submitAccount = (email) => {
+    setRegisteredEmails((prev) => (prev.includes(email) ? prev : [...prev, email]))
     setPendingEmail(email)
     setPage('creating-account')
     setTimeout(() => setPage('verify-email'), 2200)
@@ -35,14 +44,7 @@ function App() {
   let content
 
   if (page === 'dashboard') {
-    content = (
-      <div className="p-10">
-        <h1 className="text-2xl font-bold">Dashboard (coming soon)</h1>
-        <button className="mt-4 underline" onClick={() => setPage('landing')}>
-          Sign out
-        </button>
-      </div>
-    )
+    content = <Dashboard onSignOut={() => setPage('landing')} />
   } else if (page === 'signing-in') {
     content = <SigningInLoadingPage />
   } else if (page === 'creating-account') {
@@ -52,12 +54,25 @@ function App() {
       <VerifyEmailPage
         email={pendingEmail}
         onBackToLanding={() => setPage('landing')}
-        onVerify={async () => {
+        onVerify={async (code) => {
           await new Promise((r) => setTimeout(r, 600))
+          if (code !== '123456') throw new Error('invalid code')
           setPage('account-verified')
         }}
+        onVerifyFailed={() => setPage('verification-failed')}
         onResend={() => window.alert('We sent a new code to ' + pendingEmail)}
         onUseDifferentEmail={() => setPage('create-account')}
+      />
+    )
+  } else if (page === 'verification-failed') {
+    content = (
+      <VerificationFailedPage
+        onBackToLanding={() => setPage('landing')}
+        onTryAgain={() => setPage('verify-email')}
+        onSendNewCode={() => {
+          window.alert('We sent a new code to ' + pendingEmail)
+          setPage('verify-email')
+        }}
       />
     )
   } else if (page === 'account-verified') {
@@ -87,19 +102,38 @@ function App() {
         email={pendingEmail}
         onBackToLanding={() => setPage('landing')}
         onBackToSignIn={() => setPage('login')}
-        onOpenResetLink={() => setPage('reset-password')}
+        onOpenResetLink={() => {
+          setPage('verifying-link')
+          setTimeout(() => setPage('reset-password'), 2200)
+        }}
         onResendLink={() => window.alert('We sent a new reset link to ' + pendingEmail)}
       />
     )
+  } else if (page === 'verifying-link') {
+    content = <VerifyingLinkLoadingPage />
   } else if (page === 'reset-password') {
     content = (
       <ResetPasswordPage
         onBackToLanding={() => setPage('landing')}
         onBackToSignIn={() => setPage('login')}
+        onResetFailed={() => {
+          setPage('matching-password')
+          setTimeout(() => setPage('password-reset-failed'), 2200)
+        }}
         onSaveNewPassword={async () => {
           setPage('saving-password')
           setTimeout(() => setPage('password-updated'), 2200)
         }}
+      />
+    )
+  } else if (page === 'matching-password') {
+    content = <MatchingPasswordLoadingPage />
+  } else if (page === 'password-reset-failed') {
+    content = (
+      <PasswordResetFailedPage
+        onBackToLanding={() => setPage('landing')}
+        onTryAgain={() => setPage('reset-password')}
+        onRequestNewLink={() => setPage('forgot-password')}
       />
     )
   } else if (page === 'saving-password') {
@@ -119,8 +153,18 @@ function App() {
         onCreateAccount={async ({ fullName, email, password }) => {
           await new Promise((r) => setTimeout(r, 600))
           if (!fullName || !email || !password) throw new Error('missing fields')
+          if (registeredEmails.includes(email)) throw new Error('email taken')
           submitAccount(email)
         }}
+        onAccountFailed={() => setPage('account-failed')}
+      />
+    )
+  } else if (page === 'account-failed') {
+    content = (
+      <AccountCreationFailedPage
+        onBackToLanding={() => setPage('landing')}
+        onTryAgain={() => setPage('create-account')}
+        onResetPassword={() => setPage('forgot-password')}
       />
     )
   } else if (page === 'login') {
@@ -132,7 +176,16 @@ function App() {
           if (password !== 'demo') throw new Error('bad login')
           acceptCredentials()
         }}
+        onSignInFailed={() => setPage('sign-in-failed')}
         onCreateAccount={() => setPage('create-account')}
+        onForgotPassword={() => setPage('forgot-password')}
+      />
+    )
+  } else if (page === 'sign-in-failed') {
+    content = (
+      <SignInFailedPage
+        onBackToLanding={() => setPage('landing')}
+        onTryAgain={() => setPage('login')}
         onForgotPassword={() => setPage('forgot-password')}
       />
     )
