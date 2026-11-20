@@ -2,12 +2,6 @@ import { useState } from 'react'
 import Hero from './components/Hero'
 import InitialLoadingScreen from './components/InitialLoadingScreen'
 import LoginPage from './components/LoginPage'
-import CreateAccountPage from './components/CreateAccountPage'
-import CreateAccountLoadingPage from './components/CreateAccountLoadingPage'
-import VerifyEmailPage from './components/VerifyEmailPage'
-import AccountVerifiedPage from './components/AccountVerifiedPage'
-import AccountCreationFailedPage from './components/AccountCreationFailedPage'
-import VerificationFailedPage from './components/VerificationFailedPage'
 import SignInFailedPage from './components/SignInFailedPage'
 import PasswordResetFailedPage from './components/PasswordResetFailedPage'
 import VerifyingLinkLoadingPage from './components/VerifyingLinkLoadingPage'
@@ -49,20 +43,12 @@ const NAV_PAGE = {
 function App() {
   const [loading, setLoading] = useState(true)
   const [entering, setEntering] = useState(false)
-  const [page, setPage] = useState('landing') // 'landing' | 'login' | 'create-account' | 'creating-account' | 'account-failed' | 'verify-email' | 'verification-failed' | 'account-verified' | 'forgot-password' | 'sending-reset-link' | 'check-inbox' | 'verifying-link' | 'reset-password' | 'matching-password' | 'password-reset-failed' | 'saving-password' | 'password-updated' | 'signing-in' | 'sign-in-failed' | modules (see MODULES): 'dashboard' | 'chart-of-accounts' | 'journal-entries' | 'general-ledger' | 'invoices-receivables' | 'bills-payables' | 'expenses' | 'bank-reconciliation' | 'financial-reports' | 'tax-summaries' | 'integrations'
+  const [page, setPage] = useState('landing') // 'landing' | 'login' | 'forgot-password' | 'sending-reset-link' | 'check-inbox' | 'verifying-link' | 'reset-password' | 'matching-password' | 'password-reset-failed' | 'saving-password' | 'password-updated' | 'signing-in' | 'sign-in-failed' | modules (see MODULES): 'dashboard' | 'chart-of-accounts' | 'journal-entries' | 'general-ledger' | 'invoices-receivables' | 'bills-payables' | 'expenses' | 'bank-reconciliation' | 'financial-reports' | 'tax-summaries' | 'integrations'
   const [pendingEmail, setPendingEmail] = useState('')
-  const [registeredEmails, setRegisteredEmails] = useState([])
 
   const acceptCredentials = () => {
     setPage('signing-in')
     setTimeout(() => setPage('dashboard'), 2200)
-  }
-
-  const submitAccount = (email) => {
-    setRegisteredEmails((prev) => (prev.includes(email) ? prev : [...prev, email]))
-    setPendingEmail(email)
-    setPage('creating-account')
-    setTimeout(() => setPage('verify-email'), 2200)
   }
 
   const handleNavigate = (label) => {
@@ -94,41 +80,6 @@ function App() {
     content = MODULES[page]
   } else if (page === 'signing-in') {
     content = <SigningInLoadingPage />
-  } else if (page === 'creating-account') {
-    content = <CreateAccountLoadingPage />
-  } else if (page === 'verify-email') {
-    content = (
-      <VerifyEmailPage
-        email={pendingEmail}
-        onBackToLanding={() => setPage('landing')}
-        onVerify={async (code) => {
-          await new Promise((r) => setTimeout(r, 600))
-          if (code !== '123456') throw new Error('invalid code')
-          setPage('account-verified')
-        }}
-        onVerifyFailed={() => setPage('verification-failed')}
-        onResend={() => window.alert('We sent a new code to ' + pendingEmail)}
-        onUseDifferentEmail={() => setPage('create-account')}
-      />
-    )
-  } else if (page === 'verification-failed') {
-    content = (
-      <VerificationFailedPage
-        onBackToLanding={() => setPage('landing')}
-        onTryAgain={() => setPage('verify-email')}
-        onSendNewCode={() => {
-          window.alert('We sent a new code to ' + pendingEmail)
-          setPage('verify-email')
-        }}
-      />
-    )
-  } else if (page === 'account-verified') {
-    content = (
-      <AccountVerifiedPage
-        onBackToLanding={() => setPage('landing')}
-        onContinueToSignIn={() => setPage('login')}
-      />
-    )
   } else if (page === 'forgot-password') {
     content = (
       <ForgotPasswordPage
@@ -192,28 +143,6 @@ function App() {
         onBackToSignIn={() => setPage('login')}
       />
     )
-  } else if (page === 'create-account') {
-    content = (
-      <CreateAccountPage
-        onBackToLanding={() => setPage('landing')}
-        onSignIn={() => setPage('login')}
-        onCreateAccount={async ({ fullName, email, password }) => {
-          await new Promise((r) => setTimeout(r, 600))
-          if (!fullName || !email || !password) throw new Error('missing fields')
-          if (registeredEmails.includes(email)) throw new Error('email taken')
-          submitAccount(email)
-        }}
-        onAccountFailed={() => setPage('account-failed')}
-      />
-    )
-  } else if (page === 'account-failed') {
-    content = (
-      <AccountCreationFailedPage
-        onBackToLanding={() => setPage('landing')}
-        onTryAgain={() => setPage('create-account')}
-        onResetPassword={() => setPage('forgot-password')}
-      />
-    )
   } else if (page === 'login') {
     content = (
       <LoginPage
@@ -224,7 +153,6 @@ function App() {
           acceptCredentials()
         }}
         onSignInFailed={() => setPage('sign-in-failed')}
-        onCreateAccount={() => setPage('create-account')}
         onForgotPassword={() => setPage('forgot-password')}
       />
     )
@@ -242,7 +170,6 @@ function App() {
         <Hero
           entering={entering}
           onLogin={() => setPage('login')}
-          onCreateAccount={() => setPage('create-account')}
         />
         {loading ? (
           <InitialLoadingScreen
