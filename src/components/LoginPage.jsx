@@ -10,13 +10,12 @@ const inputClass =
  * Props:
  *  onSignIn(email, password)  async; throw/reject on failure
  *  onSignInFailed             called when sign in fails
- *  onBackToLanding, onCreateAccount, onForgotPassword  navigation callbacks
+ *  onBackToLanding, onForgotPassword  navigation callbacks
  */
 export default function LoginPage({
   onSignIn,
   onSignInFailed,
   onBackToLanding,
-  onCreateAccount,
   onForgotPassword,
 }) {
   const [email, setEmail] = useState("");
@@ -162,9 +161,6 @@ export default function LoginPage({
 
             <hr className="m-0 h-px w-full border-0 bg-[#dce5ea]" />
 
-            <button type="button" onClick={onCreateAccount} className={textLink}>
-              Create an account
-            </button>
             <button type="button" onClick={onForgotPassword} className={textLink}>
               Forgot password?
             </button>
