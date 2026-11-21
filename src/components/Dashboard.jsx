@@ -7,7 +7,7 @@ import AppShell from "./AppShell";
 const SAMPLE_DATA = {
   month: "August 2026",
   dateLine: "Friday, 14 August · Your monthly financial picture.",
-  user: { name: "Jamie Santos", role: "Accountant", initials: "JS" },
+  user: { name: "Alex Rivera", role: "Administrator", initials: "AR" },
   cash: {
     amount: 88000,
     movement: 10000, // net cash movement this month
@@ -30,7 +30,7 @@ const SAMPLE_DATA = {
   approval: {
     count: "01",
     title: "Development tools subscription",
-    reference: "JE-0006 · Submitted by Jamie Santos",
+    reference: "JE-0006 · Submitted by Alex Rivera",
     amount: 1800,
     date: "15 AUG",
   },
