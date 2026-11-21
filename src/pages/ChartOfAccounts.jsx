@@ -83,7 +83,7 @@ export default function ChartOfAccounts(props) {
   const [newCode, setNewCode] = useState("");
   const [newName, setNewName] = useState("");
   const [newClass, setNewClass] = useState("Asset");
-  const [newBalance, setNewBalance] = useState("");
+  const [newStatus, setNewStatus] = useState("Active");
 
   const filteredAccounts = useMemo(() => {
     return accounts.filter((acc) => {
@@ -116,7 +116,8 @@ export default function ChartOfAccounts(props) {
       code: newCode.trim(),
       name: newName.trim(),
       accountClass: newClass,
-      balance: parseFloat(newBalance) || 0,
+      status: newStatus,
+      balance: 0,
     };
 
     setAccounts((prev) =>
@@ -125,7 +126,7 @@ export default function ChartOfAccounts(props) {
     setNewCode("");
     setNewName("");
     setNewClass("Asset");
-    setNewBalance("");
+    setNewStatus("Active");
     setIsModalOpen(false);
   };
 
@@ -324,7 +325,7 @@ export default function ChartOfAccounts(props) {
               Create new account
             </h3>
             <p className="mt-1 text-xs text-slate-500">
-              Add a new account code to the EnovAcc chart of accounts.
+              Add a consistent classification to your chart of accounts.
             </p>
 
             <form onSubmit={handleAddAccount} className="mt-4 space-y-3.5">
@@ -359,7 +360,7 @@ export default function ChartOfAccounts(props) {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-medium text-slate-700">
-                    Class
+                    Account class
                   </label>
                   <select
                     value={newClass}
@@ -376,16 +377,16 @@ export default function ChartOfAccounts(props) {
 
                 <div>
                   <label className="block text-xs font-medium text-slate-700">
-                    Opening balance (PHP)
+                    Status
                   </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    placeholder="0.00"
-                    value={newBalance}
-                    onChange={(e) => setNewBalance(e.target.value)}
-                    className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-xs text-slate-800 focus:border-sky-500 focus:outline-none"
-                  />
+                  <select
+                    value={newStatus}
+                    onChange={(e) => setNewStatus(e.target.value)}
+                    className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-sky-500 focus:outline-none"
+                  >
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                  </select>
                 </div>
               </div>
 
