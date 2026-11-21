@@ -45,6 +45,7 @@ function App() {
   const [entering, setEntering] = useState(false)
   const [page, setPage] = useState('landing') // 'landing' | 'login' | 'forgot-password' | 'sending-reset-link' | 'check-inbox' | 'verifying-link' | 'reset-password' | 'matching-password' | 'password-reset-failed' | 'saving-password' | 'password-updated' | 'signing-in' | 'sign-in-failed' | modules (see MODULES): 'dashboard' | 'chart-of-accounts' | 'journal-entries' | 'general-ledger' | 'invoices-receivables' | 'bills-payables' | 'expenses' | 'bank-reconciliation' | 'financial-reports' | 'tax-summaries' | 'integrations'
   const [pendingEmail, setPendingEmail] = useState('')
+  const [month, setMonth] = useState('October 2026')
 
   const acceptCredentials = () => {
     setPage('signing-in')
@@ -66,7 +67,7 @@ function App() {
     'journal-entries': <JournalEntries {...moduleProps} />,
     'general-ledger': <GeneralLedger {...moduleProps} />,
     'invoices-receivables': <InvoicesReceivables {...moduleProps} />,
-    'bills-payables': <BillsPayables {...moduleProps} />,
+    'bills-payables': <BillsPayables {...moduleProps} month={month} onMonthChange={setMonth} />,
     'expenses': <Expenses {...moduleProps} />,
     'bank-reconciliation': <BankReconciliation {...moduleProps} />,
     'financial-reports': <FinancialReports {...moduleProps} />,
