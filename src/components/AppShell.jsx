@@ -37,7 +37,7 @@ const NAV_INSIGHTS = [
 ];
 
 /** Simple 20px line icons (no extra package needed). */
-function Icon({ name, className = "h-5 w-5" }) {
+export function Icon({ name, className = "h-5 w-5" }) {
   const props = {
     xmlns: "http://www.w3.org/2000/svg",
     viewBox: "0 0 24 24",
@@ -132,6 +132,20 @@ function Icon({ name, className = "h-5 w-5" }) {
       return (
         <svg {...props}>
           <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
+        </svg>
+      );
+    case "users":
+      return (
+        <svg {...props}>
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+          <circle cx="9" cy="7" r="4" />
+        </svg>
+      );
+    case "search":
+      return (
+        <svg {...props}>
+          <circle cx="11" cy="11" r="7" />
+          <path d="m21 21-4.3-4.3" />
         </svg>
       );
     case "chevron":
