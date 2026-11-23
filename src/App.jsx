@@ -60,19 +60,20 @@ function App() {
   const handleSignOut = () => setPage('landing')
 
   const moduleProps = { onNavigate: handleNavigate, onSignOut: handleSignOut }
+  const monthProps = { month, onMonthChange: setMonth }
 
   const MODULES = {
     'dashboard': <Dashboard {...moduleProps} />,
     'chart-of-accounts': <ChartOfAccounts {...moduleProps} />,
-    'journal-entries': <JournalEntries {...moduleProps} />,
-    'general-ledger': <GeneralLedger {...moduleProps} />,
-    'invoices-receivables': <InvoicesReceivables {...moduleProps} />,
+    'journal-entries': <JournalEntries {...moduleProps} {...monthProps} />,
+    'general-ledger': <GeneralLedger {...moduleProps} {...monthProps} />,
+    'invoices-receivables': <InvoicesReceivables {...moduleProps} {...monthProps} />,
     'bills-payables': <BillsPayables {...moduleProps} month={month} onMonthChange={setMonth} />,
-    'expenses': <Expenses {...moduleProps} />,
-    'bank-reconciliation': <BankReconciliation {...moduleProps} />,
-    'financial-reports': <FinancialReports {...moduleProps} />,
-    'tax-summaries': <TaxSummaries {...moduleProps} />,
-    'integrations': <Integrations {...moduleProps} />,
+    'expenses': <Expenses {...moduleProps} {...monthProps} />,
+    'bank-reconciliation': <BankReconciliation {...moduleProps} {...monthProps} />,
+    'financial-reports': <FinancialReports {...moduleProps} {...monthProps} />,
+    'tax-summaries': <TaxSummaries {...moduleProps} {...monthProps} />,
+    'integrations': <Integrations {...moduleProps} {...monthProps} />,
   }
 
   let content
