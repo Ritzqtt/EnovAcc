@@ -6,6 +6,7 @@ import PasswordResetFailedPage from './components/PasswordResetFailedPage'
 import VerifyingLinkLoadingPage from './components/VerifyingLinkLoadingPage'
 import MatchingPasswordLoadingPage from './components/MatchingPasswordLoadingPage'
 import Dashboard from './components/Dashboard'
+import NewTransactionDialog from './components/NewTransactionDialog'
 import ChartOfAccounts from './pages/ChartOfAccounts'
 import JournalEntries from './pages/JournalEntries'
 import GeneralLedger from './pages/GeneralLedger'
@@ -37,6 +38,14 @@ const NAV_PAGE = {
   'Financial reports': 'financial-reports',
   'Tax summaries': 'tax-summaries',
   'Integrations': 'integrations',
+}
+
+// Which module each "New transaction" choice opens.
+const TRANSACTION_PAGE = {
+  invoice: 'invoices-receivables',
+  expense: 'expenses',
+  journal: 'journal-entries',
+  bill: 'bills-payables',
 }
 
 const BASE_PATH = (import.meta.env.BASE_URL || '/').replace(/\/$/, '')
@@ -85,6 +94,7 @@ function App() {
   const [month, setMonth] = useState('October 2026')
   const [currentUser, setCurrentUser] = useState(null)
   const [loaderDone, setLoaderDone] = useState(false)
+  const [newTxOpen, setNewTxOpen] = useState(false)
 
   // Normalize the address bar once per full load.
   useEffect(() => {
@@ -291,6 +301,17 @@ function App() {
     }
   }
 
+  // "+ New transaction" dialog -> jump to the module that records it.
+  const handleNewTransactionSelect = (type) => {
+    setNewTxOpen(false)
+
+    const next = TRANSACTION_PAGE[type]
+
+    if (next) {
+      setPage(next)
+    }
+  }
+
   // Sign out from the actual Supabase session.
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut()
@@ -317,7 +338,12 @@ function App() {
   }
 
   const MODULES = {
-    dashboard: <Dashboard {...moduleProps} />,
+    dashboard: (
+      <Dashboard
+        {...moduleProps}
+        onNewTransaction={() => setNewTxOpen(true)}
+      />
+    ),
 
     'chart-of-accounts': (
       <ChartOfAccounts {...moduleProps} />
@@ -496,6 +522,15 @@ function App() {
       <PageTransition pageKey={page}>
         {content}
       </PageTransition>
+
+      {/* Sibling of PageTransition on purpose: its entering layer animates a
+          transform, which would become the containing block for the dialog's
+          position: fixed overlay. */}
+      <NewTransactionDialog
+        open={newTxOpen}
+        onClose={() => setNewTxOpen(false)}
+        onSelect={handleNewTransactionSelect}
+      />
 
       {/* On refresh, the loader sits on top of the dashboard. */}
       {page === 'dashboard' && loading ? (
