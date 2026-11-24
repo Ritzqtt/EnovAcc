@@ -81,9 +81,19 @@ function MetricCard({ title, caption, value }) {
   );
 }
 
-function SummaryItem({ label, value, note }) {
+function SummaryItem({ label, value, note, onClick }) {
+  const Tag = onClick ? "button" : "div";
   return (
-    <div className="flex flex-col gap-1">
+    <Tag
+      {...(onClick
+        ? {
+            type: "button",
+            onClick,
+            className:
+              "flex flex-col gap-1 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#02355d]",
+          }
+        : { className: "flex flex-col gap-1" })}
+    >
       <p className="text-[10px] font-bold leading-4 text-[#637a8a]">{label}</p>
       <p className="flex items-start gap-3 text-[21px] font-bold leading-[30px] text-[#021820]">
         {peso.format(value)}
@@ -92,7 +102,7 @@ function SummaryItem({ label, value, note }) {
         </span>
       </p>
       <p className="text-xs leading-[18px] text-[#637a8a]">{note}</p>
-    </div>
+    </Tag>
   );
 }
 
@@ -243,6 +253,7 @@ function ApprovalCard({ approval, onReview }) {
  *  onSignOut           called by the logout icon
  *  onNewTransaction    called by "+ New transaction"
  *  onReviewTransaction called by "Review transaction"
+ *  onSelectSummary     called with the card label, e.g. "NET INCOME"
  */
 export default function Dashboard({
   data = SAMPLE_DATA,
@@ -250,6 +261,7 @@ export default function Dashboard({
   onSignOut,
   onNewTransaction,
   onReviewTransaction,
+  onSelectSummary,
 }) {
   const { summary } = data;
 
@@ -301,10 +313,26 @@ export default function Dashboard({
 
         {/* summary strip */}
         <Card className="grid grid-cols-2 gap-6 p-5 lg:grid-cols-4">
-          <SummaryItem label="NET INCOME" {...summary.netIncome} />
-          <SummaryItem label="RECEIVABLES" {...summary.receivables} />
-          <SummaryItem label="PAYABLES" {...summary.payables} />
-          <SummaryItem label="AWAITING APPROVAL" {...summary.awaiting} />
+          <SummaryItem
+            label="NET INCOME"
+            {...summary.netIncome}
+            onClick={() => onSelectSummary?.("NET INCOME")}
+          />
+          <SummaryItem
+            label="RECEIVABLES"
+            {...summary.receivables}
+            onClick={() => onSelectSummary?.("RECEIVABLES")}
+          />
+          <SummaryItem
+            label="PAYABLES"
+            {...summary.payables}
+            onClick={() => onSelectSummary?.("PAYABLES")}
+          />
+          <SummaryItem
+            label="AWAITING APPROVAL"
+            {...summary.awaiting}
+            onClick={() => onSelectSummary?.("AWAITING APPROVAL")}
+          />
         </Card>
 
         {/* chart + approval */}
