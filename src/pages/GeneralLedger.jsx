@@ -157,7 +157,6 @@ export default function GeneralLedger(props) {
       active="General ledger"
       title="The complete accounting record."
       description="Approved transactions, organized by account and posting date."
-      actionLabel="null"
       {...props}
     >
       <div

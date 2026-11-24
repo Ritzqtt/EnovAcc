@@ -136,7 +136,7 @@ export default function Integrations(props) {
       active="Integrations"
       title="Connected records. Clear boundaries."
       description="Exchange relevant data with the existing payroll and analytics modules."
-      actionLabel="null"
+      actionLabel="Preview payroll import"
       {...props}
     >
       <div className="grid gap-6 lg:grid-cols-2">

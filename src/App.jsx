@@ -1,11 +1,21 @@
 import { useEffect, useLayoutEffect, useState } from 'react'
 import { supabase } from './lib/supabase'
+import {
+  ROUTE,
+  STATE_PAGE,
+  DIALOGS_BUILT,
+  NAV_PAGE,
+  TRANSACTION_PAGE,
+  resolve,
+  warnUnsupported,
+} from './lib/navigation'
 import InitialLoadingScreen from './components/InitialLoadingScreen'
 import SignInFailedPage from './components/SignInFailedPage'
 import PasswordResetFailedPage from './components/PasswordResetFailedPage'
 import VerifyingLinkLoadingPage from './components/VerifyingLinkLoadingPage'
 import MatchingPasswordLoadingPage from './components/MatchingPasswordLoadingPage'
 import Dashboard from './components/Dashboard'
+import NewTransactionDialog from './components/NewTransactionDialog'
 import ChartOfAccounts from './pages/ChartOfAccounts'
 import JournalEntries from './pages/JournalEntries'
 import GeneralLedger from './pages/GeneralLedger'
@@ -25,19 +35,8 @@ import SigningInLoadingPage from './components/SigningInLoadingPage'
 import PageTransition from './components/PageTransition'
 import AuthSurface from './components/auth/AuthSurface'
 
-const NAV_PAGE = {
-  'Dashboard': 'dashboard',
-  'Chart of accounts': 'chart-of-accounts',
-  'Journal entries': 'journal-entries',
-  'General ledger': 'general-ledger',
-  'Invoices & receivables': 'invoices-receivables',
-  'Bills & payables': 'bills-payables',
-  'Expenses': 'expenses',
-  'Bank reconciliation': 'bank-reconciliation',
-  'Financial reports': 'financial-reports',
-  'Tax summaries': 'tax-summaries',
-  'Integrations': 'integrations',
-}
+// NAV_PAGE and TRANSACTION_PAGE come from ./lib/navigation — the single
+// place button destinations are resolved (see buttonDestinations.js).
 
 const BASE_PATH = (import.meta.env.BASE_URL || '/').replace(/\/$/, '')
 
@@ -85,6 +84,8 @@ function App() {
   const [month, setMonth] = useState('October 2026')
   const [currentUser, setCurrentUser] = useState(null)
   const [loaderDone, setLoaderDone] = useState(false)
+  // One state for every overlay: the value is a dialog id, null when closed.
+  const [dialog, setDialog] = useState(null)
 
   // Normalize the address bar once per full load.
   useEffect(() => {
@@ -291,6 +292,44 @@ function App() {
     }
   }
 
+  // The one dispatcher: interprets a destination from buttonDestinations.js.
+  // "close" and "filter" belong to the caller, not here.
+  const goTo = (dest) => {
+    if (!dest) return
+
+    if (dest.type === 'page') {
+      const route = ROUTE[dest.to]
+      if (route) {
+        setPage(route)
+        return
+      }
+    } else if (dest.type === 'dialog') {
+      if (DIALOGS_BUILT.has(dest.to)) {
+        setDialog(dest.to)
+        return
+      }
+    } else if (dest.type === 'state') {
+      const route = STATE_PAGE[dest.to]
+      if (route) {
+        setPage(route)
+        return
+      }
+    }
+
+    warnUnsupported(dest)
+  }
+
+  // "+ New transaction" dialog -> the module that records the choice.
+  const handleNewTransactionSelect = (type) => {
+    setDialog(null)
+    goTo({ type: 'page', to: TRANSACTION_PAGE[type] })
+  }
+
+  // Dashboard click-through (summary cards, "Review transaction", ...).
+  const handleDashboardGo = (label) => {
+    goTo(resolve('dashboard', label))
+  }
+
   // Sign out from the actual Supabase session.
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut()
@@ -317,7 +356,14 @@ function App() {
   }
 
   const MODULES = {
-    dashboard: <Dashboard {...moduleProps} />,
+    dashboard: (
+      <Dashboard
+        {...moduleProps}
+        onNewTransaction={() => setDialog('newTransaction')}
+        onSelectSummary={handleDashboardGo}
+        onReviewTransaction={() => handleDashboardGo('Review transaction')}
+      />
+    ),
 
     'chart-of-accounts': (
       <ChartOfAccounts {...moduleProps} />
@@ -496,6 +542,15 @@ function App() {
       <PageTransition pageKey={page}>
         {content}
       </PageTransition>
+
+      {/* Sibling of PageTransition on purpose: its entering layer animates a
+          transform, which would become the containing block for the dialog's
+          position: fixed overlay. */}
+      <NewTransactionDialog
+        open={dialog === 'newTransaction'}
+        onClose={() => setDialog(null)}
+        onSelect={handleNewTransactionSelect}
+      />
 
       {/* On refresh, the loader sits on top of the dashboard. */}
       {page === 'dashboard' && loading ? (
