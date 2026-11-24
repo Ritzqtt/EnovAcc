@@ -1,6 +1,23 @@
 /* Shared layout for every screen: sidebar + top bar. */
 
-const DEFAULT_USER = { name: "Jamie Santos", role: "Accountant", initials: "JS" };
+import { useState } from "react";
+
+const DEFAULT_USER = { name: "Alex Rivera", role: "Administrator", initials: "AR" };
+
+const MONTHS_2026 = [
+  "January 2026",
+  "February 2026",
+  "March 2026",
+  "April 2026",
+  "May 2026",
+  "June 2026",
+  "July 2026",
+  "August 2026",
+  "September 2026",
+  "October 2026",
+  "November 2026",
+  "December 2026",
+];
 
 const NAV_MAIN = [
   ["Dashboard", "grid"],
@@ -20,7 +37,7 @@ const NAV_INSIGHTS = [
 ];
 
 /** Simple 20px line icons (no extra package needed). */
-function Icon({ name, className = "h-5 w-5" }) {
+export function Icon({ name, className = "h-5 w-5" }) {
   const props = {
     xmlns: "http://www.w3.org/2000/svg",
     viewBox: "0 0 24 24",
@@ -117,6 +134,20 @@ function Icon({ name, className = "h-5 w-5" }) {
           <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
         </svg>
       );
+    case "users":
+      return (
+        <svg {...props}>
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+          <circle cx="9" cy="7" r="4" />
+        </svg>
+      );
+    case "search":
+      return (
+        <svg {...props}>
+          <circle cx="11" cy="11" r="7" />
+          <path d="m21 21-4.3-4.3" />
+        </svg>
+      );
     case "chevron":
       return (
         <svg {...props}>
@@ -211,7 +242,16 @@ function Sidebar({ active, onNavigate }) {
   );
 }
 
-function TopBar({ active, month, user, onSignOut }) {
+function TopBar({ active, month = "August 2026", onMonthChange, user, onSignOut }) {
+  const [selectedMonth, setSelectedMonth] = useState(month);
+  const [pickerOpen, setPickerOpen] = useState(false);
+
+  const selectMonth = (m) => {
+    setSelectedMonth(m);
+    setPickerOpen(false);
+    onMonthChange?.(m);
+  };
+
   return (
     <header className="flex items-center justify-between gap-4 bg-white p-6">
       <p className="whitespace-pre text-xs leading-[18px] text-[#637a8a]">
@@ -219,14 +259,64 @@ function TopBar({ active, month, user, onSignOut }) {
       </p>
 
       <div className="flex h-9 items-center gap-4">
-        <button
-          type="button"
-          className="flex items-center gap-1 text-[13px] font-bold leading-5 text-[#021820]"
-          aria-label="Change month"
-        >
-          {month}
-          <Icon name="chevron" className="h-4 w-4" />
-        </button>
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setPickerOpen((open) => !open)}
+            aria-label="Change month"
+            aria-haspopup="listbox"
+            aria-expanded={pickerOpen}
+            className="flex items-center gap-1 text-[13px] font-bold leading-5 text-[#021820] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0693c7]"
+          >
+            {selectedMonth}
+            <Icon
+              name="chevron"
+              className={`h-4 w-4 transition-transform ${pickerOpen ? "rotate-180" : ""}`}
+            />
+          </button>
+
+          {pickerOpen && (
+            <div
+              className="fixed inset-0 z-10"
+              onClick={() => setPickerOpen(false)}
+              aria-hidden="true"
+            />
+          )}
+
+          {pickerOpen && (
+            <div
+              role="listbox"
+              aria-label="Select month"
+              className="absolute right-0 top-full z-30 mt-2 w-[280px] rounded-xl border border-[#dce5ea] bg-white p-3 shadow-xl"
+            >
+              <p className="mb-2 px-1 text-[10px] font-bold leading-4 text-[#637a8a]">
+                SELECT PERIOD
+              </p>
+              <div className="grid grid-cols-3 gap-1.5">
+                {MONTHS_2026.map((m) => {
+                  const short = m.split(" ")[0].slice(0, 3);
+                  const isSelected = m === selectedMonth;
+                  return (
+                    <button
+                      key={m}
+                      type="button"
+                      role="option"
+                      aria-selected={isSelected}
+                      onClick={() => selectMonth(m)}
+                      className={`rounded-lg px-2 py-2 text-[11px] font-semibold transition-colors ${
+                        isSelected
+                          ? "bg-[#0693c7] text-white"
+                          : "text-[#021820] hover:bg-[#e6f6fd]"
+                      }`}
+                    >
+                      {short}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
 
         <button type="button" aria-label="Notifications" className="text-[#021820]">
           <Icon name="bell" />
@@ -267,6 +357,7 @@ export default function AppShell({
   active,
   onNavigate,
   month = "August 2026",
+  onMonthChange,
   user = DEFAULT_USER,
   onSignOut,
   children,
@@ -275,7 +366,13 @@ export default function AppShell({
     <div className="flex min-h-screen bg-[#f3f6f8] font-['Inter',system-ui,sans-serif] text-[#021820]">
       <Sidebar active={active} onNavigate={onNavigate} />
       <div className="flex min-w-0 flex-1 flex-col">
-        <TopBar active={active} month={month} user={user} onSignOut={onSignOut} />
+        <TopBar
+          active={active}
+          month={month}
+          onMonthChange={onMonthChange}
+          user={user}
+          onSignOut={onSignOut}
+        />
         {children}
       </div>
     </div>
