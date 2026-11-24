@@ -16,7 +16,7 @@ export default function SigningInLoadingPage() {
         <div className="relative max-w-[480px]">
           <p className="mb-2 text-[15px] font-bold leading-4">THE FINANCIAL PICTURE, CONNECTED.</p>
           <h1 className="translate-x-1 whitespace-nowrap text-[clamp(4rem,7.25vw,136px)] font-black italic leading-none">
-            EnovAcc:
+            EnovAcc
           </h1>
           <p className="mb-8 translate-x-1 whitespace-nowrap text-[clamp(1.5rem,2.4vw,45px)] font-medium italic">
             Financial Management System
