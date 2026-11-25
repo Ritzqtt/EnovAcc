@@ -14,6 +14,7 @@ import FinancialReports from './components/FinancialReports'
 import TaxSummaries from './components/TaxSummaries'
 import Integrations from './components/Integrations'
 import AuditTrail from './components/AuditTrail'
+import UsersRoles from './components/UsersRoles'
 import AuthSurface from './components/auth/AuthSurface'
 import AccountSettings from './components/AccountSettings'
 import ChangePassword from './components/ChangePassword'
@@ -33,6 +34,7 @@ const PAGE_LABELS = {
   'tax-summaries': 'Tax Summaries',
   integrations: 'Integrations',
   'audit-trail': 'Audit Trail',
+  'users-roles': 'Users & Roles',
   'account-settings': 'Account Settings',
   'change-password': 'Change Password',
 }
@@ -433,6 +435,7 @@ function App() {
     'tax-summaries': <TaxSummaries />,
     integrations: <Integrations />,
     'audit-trail': <AuditTrail />,
+    'users-roles': <UsersRoles />,
     'account-settings': (
       <AccountSettings {...moduleProps} onProfileUpdated={handleProfileUpdated} />
     ),
