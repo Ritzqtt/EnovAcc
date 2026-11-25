@@ -22,6 +22,13 @@ import ChangePassword from "./components/settings/ChangePassword";
 
 const BASE_PATH = (import.meta.env.BASE_URL || "/").replace(/\/$/, "");
 
+// Same shape as Topnav's month picker and every page's CURRENT_MONTH
+// default ("November 2026"), so the shared state drops straight in.
+const CURRENT_MONTH_LABEL = new Date().toLocaleDateString("en-US", {
+  month: "long",
+  year: "numeric",
+});
+
 const IDLE_TIMEOUT_MINUTES = 15;
 const IDLE_TIMEOUT_MS = IDLE_TIMEOUT_MINUTES * 60 * 1000;
 
@@ -96,6 +103,7 @@ function App() {
 
   const [authNotice, setAuthNotice] = useState("");
   const [ledgerAccount, setLedgerAccount] = useState(null);
+  const [month, setMonth] = useState(CURRENT_MONTH_LABEL);
 
   useEffect(() => {
     window.history.replaceState({ auth: "landing" }, "", authUrl("landing"));
@@ -393,26 +401,27 @@ function App() {
   };
 
   const MODULES = {
-    dashboard: <Dashboard />,
+    dashboard: <Dashboard month={month} />,
     "chart-of-accounts": (
       <ChartOfAccounts
+        month={month}
         onViewLedger={(account) => {
           setLedgerAccount(account);
           handleNavigate("General Ledger");
         }}
       />
     ),
-    "journal-entries": <JournalEntries />,
-    "general-ledger": <GeneralLedger account={ledgerAccount} />,
-    "invoices-receivables": <InvoicesReceivables />,
-    "bills-payables": <BillsPayables />,
-    expenses: <Expenses />,
-    "bank-reconciliation": <BankReconciliation />,
-    "financial-reports": <FinancialReports />,
-    "tax-summaries": <TaxSummaries />,
-    integrations: <Integrations />,
-    "audit-trail": <AuditTrail />,
-    "users-roles": <UsersRoles />,
+    "journal-entries": <JournalEntries month={month} />,
+    "general-ledger": <GeneralLedger account={ledgerAccount} month={month} />,
+    "invoices-receivables": <InvoicesReceivables month={month} />,
+    "bills-payables": <BillsPayables month={month} />,
+    expenses: <Expenses month={month} />,
+    "bank-reconciliation": <BankReconciliation month={month} />,
+    "financial-reports": <FinancialReports month={month} />,
+    "tax-summaries": <TaxSummaries month={month} />,
+    integrations: <Integrations month={month} />,
+    "audit-trail": <AuditTrail month={month} />,
+    "users-roles": <UsersRoles month={month} />,
     "account-settings": (
       <AccountSettings
         {...moduleProps}
@@ -467,6 +476,8 @@ function App() {
       <AppShell
         active={PAGE_LABELS[page]}
         user={shellUser}
+        month={month}
+        onMonthChange={setMonth}
         onNavigate={handleNavigate}
         onSignOut={handleSignOut}
       >

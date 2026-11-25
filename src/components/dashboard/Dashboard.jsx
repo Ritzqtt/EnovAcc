@@ -263,7 +263,7 @@ function ApprovalCard({ count, approval }) {
   );
 }
 
-export default function Dashboard({ data = EMPTY_DATA }) {
+export default function Dashboard({ data = EMPTY_DATA, month = data.month }) {
   const {
     cash,
     revenue,
@@ -285,7 +285,7 @@ export default function Dashboard({ data = EMPTY_DATA }) {
       <div className="flex flex-wrap items-center justify-between gap-5">
         <div className="flex flex-col gap-1">
           <p className="text-[10px] font-bold leading-4 text-[#0693c7]">
-            FINANCE WORKSPACE / {data.month.toUpperCase()}
+            FINANCE WORKSPACE / {month.toUpperCase()}
           </p>
           <h1 className="text-[32px] font-bold leading-10 text-[#021820]">
             Your financial picture.
@@ -351,7 +351,7 @@ export default function Dashboard({ data = EMPTY_DATA }) {
 
       {}
       <div className="grid items-start gap-6 xl:grid-cols-[978fr_615fr]">
-        <MonthChart month={data.month} chart={chart} />
+        <MonthChart month={month} chart={chart} />
         <ApprovalCard count={awaiting.count} approval={approval} />
       </div>
     </main>
