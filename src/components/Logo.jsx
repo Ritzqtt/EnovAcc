@@ -1,13 +1,9 @@
-import logoUrl from '../assets/logo.png'
+import logoUrl from "../assets/logo.png";
 
-/**
- * The EnovAcc wordmark. Used as the shared element that morphs between the
- * landing logo and the large login title.
- */
 export default function Logo({
-  href = '#top',
+  href = "#top",
   onClick,
-  className = '',
+  className = "",
   style,
 }) {
   return (
@@ -28,5 +24,5 @@ export default function Logo({
 
       <span className="leading-none">EnovAcc</span>
     </a>
-  )
+  );
 }

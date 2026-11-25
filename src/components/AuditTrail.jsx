@@ -1,11 +1,13 @@
 import { useMemo, useState } from "react";
 import { Icon } from "./AppShell";
 
-const CURRENT_MONTH = new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" });
+const CURRENT_MONTH = new Date().toLocaleDateString("en-US", {
+  month: "long",
+  year: "numeric",
+});
 
 const PAGE_SIZE = 15;
 
-// Always offered in the filter, even before any data exists.
 const ACTION_OPTIONS = [
   "Signed in",
   "Submitted expense",
@@ -13,7 +15,6 @@ const ACTION_OPTIONS = [
   "Recorded customer payment",
 ];
 
-// Rows with these actions get the light blue row tint.
 const TINTED_ACTIONS = new Set(["Signed in"]);
 
 const FOCUS =
@@ -28,10 +29,11 @@ const DATE_ONLY = /^(\d{4})-(\d{2})-(\d{2})$/;
 function parseTimestamp(value) {
   if (value instanceof Date) return value;
   const m = DATE_ONLY.exec(String(value ?? ""));
-  return m ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])) : new Date(value);
+  return m
+    ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]))
+    : new Date(value);
 }
 
-// "14 Oct 2026 · 09:12", or just "14 Oct 2026" when only a date was recorded.
 function formatTimestamp(value) {
   const d = parseTimestamp(value);
   if (Number.isNaN(d.getTime())) return String(value ?? "");
@@ -45,7 +47,9 @@ function exportCsv(rows) {
   const lines = [
     ["Timestamp", "User", "Action", "Reference"].map(esc).join(","),
     ...rows.map((r) =>
-      [formatTimestamp(r.timestamp), r.user, r.action, r.reference].map(esc).join(","),
+      [formatTimestamp(r.timestamp), r.user, r.action, r.reference]
+        .map(esc)
+        .join(","),
     ),
   ];
   const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8" });
@@ -59,14 +63,12 @@ function exportCsv(rows) {
 
 function Card({ className = "", children }) {
   return (
-    <div className={`rounded-xl border border-[#dce5ea] bg-white ${className}`}>{children}</div>
+    <div className={`rounded-xl border border-[#dce5ea] bg-white ${className}`}>
+      {children}
+    </div>
   );
 }
 
-/**
- * entries: [{ id?, timestamp (ISO string or Date), user, action, reference }]
- * Shown newest first. The "All records" filter lists the usual actions plus any others found in the data.
- */
 export default function AuditTrail({
   entries = [],
   month = CURRENT_MONTH,
@@ -80,13 +82,20 @@ export default function AuditTrail({
   const sorted = useMemo(
     () =>
       [...entries].sort(
-        (a, b) => (parseTimestamp(b.timestamp).getTime() || 0) - (parseTimestamp(a.timestamp).getTime() || 0),
+        (a, b) =>
+          (parseTimestamp(b.timestamp).getTime() || 0) -
+          (parseTimestamp(a.timestamp).getTime() || 0),
       ),
     [entries],
   );
 
   const actions = useMemo(
-    () => [...new Set([...ACTION_OPTIONS, ...entries.map((e) => e.action).filter(Boolean)])],
+    () => [
+      ...new Set([
+        ...ACTION_OPTIONS,
+        ...entries.map((e) => e.action).filter(Boolean),
+      ]),
+    ],
     [entries],
   );
 
@@ -96,9 +105,15 @@ export default function AuditTrail({
       if (actionFilter !== "All" && e.action !== actionFilter) return false;
       if (!q) return true;
       return (
-        String(e.user ?? "").toLowerCase().includes(q) ||
-        String(e.action ?? "").toLowerCase().includes(q) ||
-        String(e.reference ?? "").toLowerCase().includes(q)
+        String(e.user ?? "")
+          .toLowerCase()
+          .includes(q) ||
+        String(e.action ?? "")
+          .toLowerCase()
+          .includes(q) ||
+        String(e.reference ?? "")
+          .toLowerCase()
+          .includes(q)
       );
     });
   }, [sorted, query, actionFilter]);
@@ -192,7 +207,10 @@ export default function AuditTrail({
             <tbody>
               {loading && (
                 <tr>
-                  <td colSpan={4} className="px-5 py-14 text-center text-[#637a8a]">
+                  <td
+                    colSpan={4}
+                    className="px-5 py-14 text-center text-[#637a8a]"
+                  >
                     Loading activity history…
                   </td>
                 </tr>
@@ -200,15 +218,22 @@ export default function AuditTrail({
 
               {!loading && error && (
                 <tr>
-                  <td colSpan={4} className="px-5 py-14 text-center text-[#b0243f]">
-                    Couldn’t load activity history: {error}. Refresh the page to try again.
+                  <td
+                    colSpan={4}
+                    className="px-5 py-14 text-center text-[#b0243f]"
+                  >
+                    Couldn’t load activity history: {error}. Refresh the page to
+                    try again.
                   </td>
                 </tr>
               )}
 
               {!loading && !error && visible.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="px-5 py-14 text-center text-[#637a8a]">
+                  <td
+                    colSpan={4}
+                    className="px-5 py-14 text-center text-[#637a8a]"
+                  >
                     {entries.length === 0
                       ? "No activity yet. Approvals, changes, and exports will appear here."
                       : "No activity matches your search. Clear the search or choose another action."}
@@ -232,7 +257,9 @@ export default function AuditTrail({
                     </td>
                     <td className="px-4 py-5 text-[#021820]">{e.user}</td>
                     <td className="px-4 py-5 text-[#021820]">{e.action}</td>
-                    <td className="px-4 py-5 text-[#021820]">{e.reference || "—"}</td>
+                    <td className="px-4 py-5 text-[#021820]">
+                      {e.reference || "—"}
+                    </td>
                   </tr>
                 ))}
             </tbody>

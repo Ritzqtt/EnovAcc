@@ -1,30 +1,18 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from "react";
 
-const MESSAGES = [
-  'Signing you in',
-  'Loading your workspace',
-  'Almost ready',
-]
+const MESSAGES = ["Signing you in", "Loading your workspace", "Almost ready"];
 
-/**
- * Loading state that takes the place of the login form inside the white
- * right panel. It does not cover the screen; the brand panel on the left
- * stays untouched.
- *
- * Props:
- *  messages  optional array of status lines, advanced every ~1.2s
- */
 export default function PostLoginLoader({ messages = MESSAGES }) {
-  const [index, setIndex] = useState(0)
+  const [index, setIndex] = useState(0);
 
   useEffect(() => {
-    if (messages.length < 2) return
+    if (messages.length < 2) return;
     const id = setInterval(
       () => setIndex((i) => Math.min(i + 1, messages.length - 1)),
       1200,
-    )
-    return () => clearInterval(id)
-  }, [messages])
+    );
+    return () => clearInterval(id);
+  }, [messages]);
 
   return (
     <div
@@ -86,5 +74,5 @@ export default function PostLoginLoader({ messages = MESSAGES }) {
         {messages[index]}…
       </p>
     </div>
-  )
+  );
 }

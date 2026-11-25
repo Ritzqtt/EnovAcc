@@ -1,29 +1,14 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from "react";
 
-const LENGTH = 6
-const EMPTY = Array(LENGTH).fill('')
+const LENGTH = 6;
+const EMPTY = Array(LENGTH).fill("");
 
 const textLink =
-  'p-0 text-[16px] leading-[22px] text-[#0693c7] hover:underline focus-visible:rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0693c7] disabled:cursor-not-allowed disabled:text-[#637a8a] disabled:no-underline'
+  "p-0 text-[16px] leading-[22px] text-[#0693c7] hover:underline focus-visible:rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0693c7] disabled:cursor-not-allowed disabled:text-[#637a8a] disabled:no-underline";
 
 const boxClass =
-  'box-border h-14 w-full min-w-0 rounded-lg border border-[#dce5ea] bg-white p-0 text-center text-[24px] font-bold leading-none text-[#021820] focus-visible:border-[#0693c7] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#0693c7] aria-[invalid=true]:border-[#e5484d]'
+  "box-border h-14 w-full min-w-0 rounded-lg border border-[#dce5ea] bg-white p-0 text-center text-[24px] font-bold leading-none text-[#021820] focus-visible:border-[#0693c7] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#0693c7] aria-[invalid=true]:border-[#e5484d]";
 
-/**
- * Step 2 of sign in: the 6-digit code entry. Replaces the login form
- * inside the white right panel.
- *
- * Props:
- *  maskedEmail       e.g. "j***@company.com", shown in the helper text
- *  onVerify(code)    async; reject with an Error (message is shown) on failure
- *  onResend()        async; reject with an Error on failure
- *  onBack            go back to the login form
- *  resendCooldown    seconds before "Resend code" is available (default 30)
- *  expiresInMinutes  shown in the helper text (default 5)
- *  eyebrow, title    heading texts (defaults suit the sign in flow)
- *  backLabel         text of the back link
- *  description       optional node that replaces the helper paragraph
- */
 export default function OtpPanel({
   maskedEmail,
   onVerify,
@@ -31,130 +16,131 @@ export default function OtpPanel({
   onBack,
   resendCooldown = 30,
   expiresInMinutes = 5,
-  eyebrow = 'ONE MORE STEP',
-  title = 'Enter your code.',
-  backLabel = '← Back to sign in',
+  eyebrow = "ONE MORE STEP",
+  title = "Enter your code.",
+  backLabel = "← Back to sign in",
   description,
 }) {
-  const [digits, setDigits] = useState(EMPTY)
-  const [verifying, setVerifying] = useState(false)
-  const [resending, setResending] = useState(false)
-  const [error, setError] = useState('')
-  const [notice, setNotice] = useState('')
-  const [cooldown, setCooldown] = useState(resendCooldown)
+  const [digits, setDigits] = useState(EMPTY);
+  const [verifying, setVerifying] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+  const [cooldown, setCooldown] = useState(resendCooldown);
 
-  const inputs = useRef([])
-  const submitting = useRef(false)
-  const code = digits.join('')
-
-  useEffect(() => {
-    inputs.current[0]?.focus()
-  }, [])
+  const inputs = useRef([]);
+  const submitting = useRef(false);
+  const code = digits.join("");
 
   useEffect(() => {
-    if (cooldown <= 0) return
-    const id = setTimeout(() => setCooldown((c) => c - 1), 1000)
-    return () => clearTimeout(id)
-  }, [cooldown])
+    inputs.current[0]?.focus();
+  }, []);
 
-  // Verify automatically as soon as the sixth digit is entered.
   useEffect(() => {
-    if (code.length === LENGTH) submit(code)
+    if (cooldown <= 0) return;
+    const id = setTimeout(() => setCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(id);
+  }, [cooldown]);
+
+  useEffect(() => {
+    if (code.length === LENGTH) submit(code);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [code])
+  }, [code]);
 
   function focusBox(i) {
-    inputs.current[Math.max(0, Math.min(i, LENGTH - 1))]?.focus()
+    inputs.current[Math.max(0, Math.min(i, LENGTH - 1))]?.focus();
   }
 
   function fill(start, raw) {
-    const chars = raw.replace(/\D/g, '').slice(0, LENGTH - start).split('')
-    if (!chars.length || chars[0] === '') return
-    setError('')
-    setNotice('')
+    const chars = raw
+      .replace(/\D/g, "")
+      .slice(0, LENGTH - start)
+      .split("");
+    if (!chars.length || chars[0] === "") return;
+    setError("");
+    setNotice("");
     setDigits((prev) => {
-      const next = [...prev]
+      const next = [...prev];
       chars.forEach((ch, k) => {
-        next[start + k] = ch
-      })
-      return next
-    })
-    focusBox(start + chars.length)
+        next[start + k] = ch;
+      });
+      return next;
+    });
+    focusBox(start + chars.length);
   }
 
   function handleChange(i, e) {
-    const v = e.target.value.replace(/\D/g, '')
+    const v = e.target.value.replace(/\D/g, "");
     if (!v) {
-      setDigits((prev) => prev.map((d, k) => (k === i ? '' : d)))
-      return
+      setDigits((prev) => prev.map((d, k) => (k === i ? "" : d)));
+      return;
     }
-    // Full code autofilled (e.g. SMS suggestion) vs. a single typed digit.
-    if (v.length >= LENGTH) fill(0, v)
-    else fill(i, v.slice(-1))
+
+    if (v.length >= LENGTH) fill(0, v);
+    else fill(i, v.slice(-1));
   }
 
   function handlePaste(i, e) {
-    e.preventDefault()
-    const text = e.clipboardData.getData('text').replace(/\D/g, '')
-    fill(text.length >= LENGTH ? 0 : i, text)
+    e.preventDefault();
+    const text = e.clipboardData.getData("text").replace(/\D/g, "");
+    fill(text.length >= LENGTH ? 0 : i, text);
   }
 
   function handleKeyDown(i, e) {
-    if (e.key === 'Backspace' && !digits[i] && i > 0) {
-      e.preventDefault()
-      setDigits((prev) => prev.map((d, k) => (k === i - 1 ? '' : d)))
-      focusBox(i - 1)
-    } else if (e.key === 'ArrowLeft') {
-      e.preventDefault()
-      focusBox(i - 1)
-    } else if (e.key === 'ArrowRight') {
-      e.preventDefault()
-      focusBox(i + 1)
+    if (e.key === "Backspace" && !digits[i] && i > 0) {
+      e.preventDefault();
+      setDigits((prev) => prev.map((d, k) => (k === i - 1 ? "" : d)));
+      focusBox(i - 1);
+    } else if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      focusBox(i - 1);
+    } else if (e.key === "ArrowRight") {
+      e.preventDefault();
+      focusBox(i + 1);
     }
   }
 
   async function submit(value) {
-    if (submitting.current) return
-    submitting.current = true
-    setVerifying(true)
-    setError('')
-    setNotice('')
+    if (submitting.current) return;
+    submitting.current = true;
+    setVerifying(true);
+    setError("");
+    setNotice("");
     try {
-      await onVerify(value)
-      // Success: the parent moves on to the loading step.
+      await onVerify(value);
     } catch (err) {
-      setError(err?.message || 'Incorrect code. Try again.')
-      setDigits(EMPTY)
-      setVerifying(false)
-      submitting.current = false
-      setTimeout(() => focusBox(0), 0)
+      setError(err?.message || "Incorrect code. Try again.");
+      setDigits(EMPTY);
+      setVerifying(false);
+      submitting.current = false;
+      setTimeout(() => focusBox(0), 0);
     }
   }
 
   function handleSubmit(e) {
-    e.preventDefault()
+    e.preventDefault();
     if (code.length < LENGTH) {
-      setError('Enter the 6-digit code.')
-      return
+      setError("Enter the 6-digit code.");
+      return;
     }
-    submit(code)
+    submit(code);
   }
 
   async function handleResend() {
-    if (cooldown > 0 || resending || verifying) return
-    setResending(true)
-    setError('')
-    setNotice('')
+    if (cooldown > 0 || resending || verifying) return;
+    setResending(true);
+    setError("");
+    setNotice("");
     try {
-      await onResend()
-      setDigits(EMPTY)
-      setCooldown(resendCooldown)
-      setNotice('We sent you a new code.')
-      focusBox(0)
+      await onResend();
+      setDigits(EMPTY);
+      setCooldown(resendCooldown);
+      setNotice("We sent you a new code.");
+      focusBox(0);
     } catch (err) {
-      setError(err?.message || "We couldn't send a new code. Try again.")
+      setError(err?.message || "We couldn't send a new code. Try again.");
     } finally {
-      setResending(false)
+      setResending(false);
     }
   }
 
@@ -170,7 +156,12 @@ export default function OtpPanel({
       `}</style>
 
       <div className="self-center">
-        <button type="button" onClick={onBack} disabled={verifying} className={textLink}>
+        <button
+          type="button"
+          onClick={onBack}
+          disabled={verifying}
+          className={textLink}
+        >
           {backLabel}
         </button>
       </div>
@@ -180,7 +171,9 @@ export default function OtpPanel({
         noValidate
         className="mt-6 flex w-full flex-col items-start gap-4"
       >
-        <p className="text-[16px] font-bold leading-4 text-[#0693c7]">{eyebrow}</p>
+        <p className="text-[16px] font-bold leading-4 text-[#0693c7]">
+          {eyebrow}
+        </p>
         <h2
           id="otp-heading"
           className="whitespace-nowrap text-[clamp(28px,4.4vw,42px)] font-bold leading-[1.1] text-[#021820]"
@@ -190,9 +183,9 @@ export default function OtpPanel({
         <p className="text-[16px] leading-[22px] text-[#637a8a]">
           {description ?? (
             <>
-              We sent a 6-digit code to{' '}
-              <span className="font-bold text-[#021820]">{maskedEmail}</span>. It expires in{' '}
-              {expiresInMinutes} minutes.
+              We sent a 6-digit code to{" "}
+              <span className="font-bold text-[#021820]">{maskedEmail}</span>.
+              It expires in {expiresInMinutes} minutes.
             </>
           )}
         </p>
@@ -209,7 +202,7 @@ export default function OtpPanel({
               type="text"
               inputMode="numeric"
               pattern="[0-9]*"
-              autoComplete={i === 0 ? 'one-time-code' : 'off'}
+              autoComplete={i === 0 ? "one-time-code" : "off"}
               aria-label={`Digit ${i + 1} of ${LENGTH}`}
               aria-invalid={error ? true : undefined}
               value={d}
@@ -239,13 +232,13 @@ export default function OtpPanel({
           disabled={verifying}
           className="box-border inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#38bdf8] p-3 text-[15px] font-bold leading-5 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#02355d] disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {verifying ? 'Verifying…' : 'Verify code'}
+          {verifying ? "Verifying…" : "Verify code"}
         </button>
 
         <hr className="m-0 h-px w-full border-0 bg-[#dce5ea]" />
 
         <p className="text-[16px] leading-[22px] text-[#637a8a]">
-          Didn’t get the code?{' '}
+          Didn’t get the code?{" "}
           <button
             type="button"
             onClick={handleResend}
@@ -253,13 +246,13 @@ export default function OtpPanel({
             className={textLink}
           >
             {resending
-              ? 'Sending…'
+              ? "Sending…"
               : cooldown > 0
                 ? `Resend code in ${cooldown}s`
-                : 'Resend code'}
+                : "Resend code"}
           </button>
         </p>
       </form>
     </div>
-  )
+  );
 }

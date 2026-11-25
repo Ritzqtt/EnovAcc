@@ -1,8 +1,13 @@
-const CURRENT_MONTH = new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" });
+const CURRENT_MONTH = new Date().toLocaleDateString("en-US", {
+  month: "long",
+  year: "numeric",
+});
 
-const peso = new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP" });
+const peso = new Intl.NumberFormat("en-PH", {
+  style: "currency",
+  currency: "PHP",
+});
 
-// ₱1,000.00 for positives, − ₱1,000.00 for negatives.
 function money(value) {
   const n = Number(value || 0);
   return n < 0 ? `− ${peso.format(Math.abs(n))}` : peso.format(n);
@@ -10,7 +15,9 @@ function money(value) {
 
 function Card({ className = "", children }) {
   return (
-    <div className={`rounded-xl border border-[#dce5ea] bg-white ${className}`}>{children}</div>
+    <div className={`rounded-xl border border-[#dce5ea] bg-white ${className}`}>
+      {children}
+    </div>
   );
 }
 
@@ -53,10 +60,6 @@ function ComputationCard({ title, children }) {
   );
 }
 
-/**
- * outputVat, inputVat, withholdingPayable: posted balances in pesos.
- * vatRate, withholdingRate: illustrative default rates, as percentages.
- */
 export default function TaxSummaries({
   outputVat = 0,
   inputVat = 0,
@@ -79,7 +82,8 @@ export default function TaxSummaries({
           Tax visibility, without the guesswork.
         </h1>
         <p className="text-xs leading-[18px] text-[#637a8a]">
-          Review illustrative VAT and withholding summaries for internal monitoring.
+          Review illustrative VAT and withholding summaries for internal
+          monitoring.
         </p>
       </div>
 
@@ -123,9 +127,15 @@ export default function TaxSummaries({
             </ComputationCard>
 
             <ComputationCard title="Withholding computation">
-              <Row label="Illustrative default rate" value={`${withholdingRate}%`} />
+              <Row
+                label="Illustrative default rate"
+                value={`${withholdingRate}%`}
+              />
               <Row label="Payment base × rate" value="Amount withheld" />
-              <Highlight label="Withholding payable" amount={withholdingPayable} />
+              <Highlight
+                label="Withholding payable"
+                amount={withholdingPayable}
+              />
             </ComputationCard>
           </div>
         </>

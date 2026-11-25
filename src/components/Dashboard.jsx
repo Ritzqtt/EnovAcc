@@ -1,10 +1,15 @@
 const now = new Date();
-const CURRENT_MONTH = now.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+const CURRENT_MONTH = now.toLocaleDateString("en-US", {
+  month: "long",
+  year: "numeric",
+});
 const DATE_LINE = `${now.toLocaleDateString("en-US", { weekday: "long" })}, ${now.toLocaleDateString("en-GB", { day: "numeric", month: "long" })} · Your monthly financial picture.`;
-const MONTH_SHORT = now.toLocaleDateString("en-US", { month: "short" }).toUpperCase();
+const MONTH_SHORT = now
+  .toLocaleDateString("en-US", { month: "short" })
+  .toUpperCase();
 const LAST_DAY = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
 const CHART_LABELS = [1, 7, 14, 21, LAST_DAY].map(
-  (day) => `${String(day).padStart(2, "0")} ${MONTH_SHORT}`
+  (day) => `${String(day).padStart(2, "0")} ${MONTH_SHORT}`,
 );
 
 const EMPTY_DATA = {
@@ -24,15 +29,13 @@ const EMPTY_DATA = {
   approval: null,
 };
 
-const peso = new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP" });
+const peso = new Intl.NumberFormat("en-PH", {
+  style: "currency",
+  currency: "PHP",
+});
 
 const plural = (count, word) => `${count} ${word}${count === 1 ? "" : "s"}`;
 
-/* ------------------------------------------------------------------ */
-/*  Small helpers                                                      */
-/* ------------------------------------------------------------------ */
-
-/** Turns a list of numbers into an SVG path "M x,y L x,y ..." */
 function linePath(values, width, top, height, max) {
   const step = width / (values.length - 1);
   return values
@@ -44,13 +47,11 @@ function linePath(values, width, top, height, max) {
     .join(" ");
 }
 
-/* ------------------------------------------------------------------ */
-/*  Pieces of the page                                                 */
-/* ------------------------------------------------------------------ */
-
 function Card({ className = "", children }) {
   return (
-    <div className={`rounded-xl border border-[#dce5ea] bg-white ${className}`}>{children}</div>
+    <div className={`rounded-xl border border-[#dce5ea] bg-white ${className}`}>
+      {children}
+    </div>
   );
 }
 
@@ -65,7 +66,10 @@ function MetricCard({ title, caption, value }) {
         <p className="text-[clamp(1.75rem,2.5vw,2.25rem)] font-bold leading-[44px] text-[#021820]">
           {peso.format(value)}
         </p>
-        <div className="mt-2 h-[5px] w-[65px] shrink-0 bg-[#0693c7]" aria-hidden="true" />
+        <div
+          className="mt-2 h-[5px] w-[65px] shrink-0 bg-[#0693c7]"
+          aria-hidden="true"
+        />
       </div>
     </Card>
   );
@@ -87,7 +91,10 @@ function SummaryItem({ label, value, note, onClick }) {
       <p className="text-[10px] font-bold leading-4 text-[#637a8a]">{label}</p>
       <p className="flex items-start gap-3 text-[21px] font-bold leading-[30px] text-[#021820]">
         {peso.format(value)}
-        <span className="text-sm font-normal leading-[22px] text-[#0693c7]" aria-hidden="true">
+        <span
+          className="text-sm font-normal leading-[22px] text-[#0693c7]"
+          aria-hidden="true"
+        >
           ↗
         </span>
       </p>
@@ -110,7 +117,9 @@ function CashCard({ cash }) {
       <div className="flex flex-wrap items-start gap-x-6">
         <p className="text-[13px] font-bold leading-5">PHP</p>
         <p className="text-xs leading-[18px] text-[#a7bfce]">
-          {cash.movement < 0 ? "−" : "+"} {peso.format(Math.abs(cash.movement)).replace(".00", "")} net cash movement this month
+          {cash.movement < 0 ? "−" : "+"}{" "}
+          {peso.format(Math.abs(cash.movement)).replace(".00", "")} net cash
+          movement this month
         </p>
       </div>
       <svg
@@ -145,7 +154,9 @@ function MonthChart({ month, chart }) {
   return (
     <Card className="flex flex-col gap-4 p-6">
       <div>
-        <h2 className="text-[19px] font-bold leading-7 text-[#021820]">Month in motion</h2>
+        <h2 className="text-[19px] font-bold leading-7 text-[#021820]">
+          Month in motion
+        </h2>
         <p className="text-xs leading-[18px] text-[#637a8a]">
           Revenue and expenses · {month}
         </p>
@@ -212,7 +223,9 @@ function ApprovalCard({ count, approval }) {
   return (
     <Card className="flex flex-col gap-4 p-6">
       <div className="flex items-start justify-between gap-4">
-        <h2 className="text-[19px] font-bold leading-7 text-[#021820]">Needs your attention</h2>
+        <h2 className="text-[19px] font-bold leading-7 text-[#021820]">
+          Needs your attention
+        </h2>
         <span className="flex h-7 w-[112px] items-center justify-center rounded-md bg-[#fff2d7] text-xs text-[#996514]">
           {String(count).padStart(2, "0")}
         </span>
@@ -220,19 +233,27 @@ function ApprovalCard({ count, approval }) {
 
       {approval ? (
         <>
-          <p className="text-[19px] font-bold leading-7 text-[#021820]">{approval.title}</p>
-          <p className="text-xs leading-[18px] text-[#637a8a]">{approval.reference}</p>
+          <p className="text-[19px] font-bold leading-7 text-[#021820]">
+            {approval.title}
+          </p>
+          <p className="text-xs leading-[18px] text-[#637a8a]">
+            {approval.reference}
+          </p>
 
           <div className="flex items-start justify-between gap-4 font-bold">
             <p className="text-[clamp(1.75rem,2.5vw,2.25rem)] leading-[44px] text-[#021820]">
               {peso.format(approval.amount)}
             </p>
-            <p className="text-[10px] leading-4 text-[#637a8a]">{approval.date}</p>
+            <p className="text-[10px] leading-4 text-[#637a8a]">
+              {approval.date}
+            </p>
           </div>
         </>
       ) : (
         <>
-          <p className="text-[19px] font-bold leading-7 text-[#021820]">You're all caught up.</p>
+          <p className="text-[19px] font-bold leading-7 text-[#021820]">
+            You're all caught up.
+          </p>
           <p className="text-xs leading-[18px] text-[#637a8a]">
             Items waiting for your approval will show up here.
           </p>
@@ -243,7 +264,16 @@ function ApprovalCard({ count, approval }) {
 }
 
 export default function Dashboard({ data = EMPTY_DATA }) {
-  const { cash, revenue, expenses, receivables, payables, awaiting, chart, approval } = data;
+  const {
+    cash,
+    revenue,
+    expenses,
+    receivables,
+    payables,
+    awaiting,
+    chart,
+    approval,
+  } = data;
 
   const netIncome = revenue - expenses;
   const margin = revenue > 0 ? Math.round((netIncome / revenue) * 100) : 0;
@@ -251,7 +281,7 @@ export default function Dashboard({ data = EMPTY_DATA }) {
 
   return (
     <main className="flex flex-col gap-6 p-4 sm:p-8">
-      {/* page heading */}
+      {}
       <div className="flex flex-wrap items-center justify-between gap-5">
         <div className="flex flex-col gap-1">
           <p className="text-[10px] font-bold leading-4 text-[#0693c7]">
@@ -260,11 +290,13 @@ export default function Dashboard({ data = EMPTY_DATA }) {
           <h1 className="text-[32px] font-bold leading-10 text-[#021820]">
             Your financial picture.
           </h1>
-          <p className="text-xs leading-[18px] text-[#637a8a]">{data.dateLine}</p>
+          <p className="text-xs leading-[18px] text-[#637a8a]">
+            {data.dateLine}
+          </p>
         </div>
       </div>
 
-      {/* cash + revenue/expenses */}
+      {}
       <div className="grid gap-6 xl:grid-cols-[851fr_743fr]">
         <CashCard cash={cash} />
         <div className="flex flex-col gap-4">
@@ -281,7 +313,7 @@ export default function Dashboard({ data = EMPTY_DATA }) {
         </div>
       </div>
 
-      {/* summary strip */}
+      {}
       <Card className="grid grid-cols-2 gap-6 p-5 lg:grid-cols-4">
         <SummaryItem
           label="NET INCOME"
@@ -317,7 +349,7 @@ export default function Dashboard({ data = EMPTY_DATA }) {
         />
       </Card>
 
-      {/* chart + approval */}
+      {}
       <div className="grid items-start gap-6 xl:grid-cols-[978fr_615fr]">
         <MonthChart month={data.month} chart={chart} />
         <ApprovalCard count={awaiting.count} approval={approval} />

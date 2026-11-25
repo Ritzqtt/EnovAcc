@@ -1,16 +1,12 @@
 const tones = {
-  card: 'border-white/45 bg-white/[0.12]',
-  panel: 'border-white/35 bg-white/[0.05]',
-}
+  card: "border-white/45 bg-white/[0.12]",
+  panel: "border-white/35 bg-white/[0.05]",
+};
 
-/**
- * Reusable frosted-glass surface.
- * Size, radius, blur and spacing are supplied by the consumer.
- */
 export default function GlassCard({
   children,
-  className = '',
-  tone = 'card',
+  className = "",
+  tone = "card",
   ...props
 }) {
   return (
@@ -20,5 +16,5 @@ export default function GlassCard({
     >
       {children}
     </div>
-  )
+  );
 }

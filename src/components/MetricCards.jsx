@@ -1,4 +1,3 @@
-/** Three-up summary cards used at the top of most module screens. */
 export default function MetricCards({ items = [] }) {
   return (
     <div className="grid gap-6 md:grid-cols-3">

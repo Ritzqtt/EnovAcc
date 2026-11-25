@@ -1,7 +1,10 @@
 import { useMemo, useState } from "react";
 import { Icon } from "./AppShell";
 
-const CURRENT_MONTH = new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" });
+const CURRENT_MONTH = new Date().toLocaleDateString("en-US", {
+  month: "long",
+  year: "numeric",
+});
 
 const PAGE_SIZE = 10;
 
@@ -10,10 +13,8 @@ const STATUS_STYLES = {
   Ready: "bg-[#e4f3fb] text-[#0a6fa6]",
 };
 
-// Always offered in the status filter, even before any data exists.
 const STATUS_OPTIONS = ["Available", "Ready"];
 
-// Rows with these statuses get the light blue row tint.
 const TINTED_STATUSES = new Set(["Available"]);
 
 const FOCUS =
@@ -26,7 +27,9 @@ const plural = (count, word) => `${count} ${word}${count === 1 ? "" : "s"}`;
 function parseDate(value) {
   if (value instanceof Date) return value;
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value ?? ""));
-  return m ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])) : new Date(value);
+  return m
+    ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]))
+    : new Date(value);
 }
 
 function formatDate(value) {
@@ -39,7 +42,9 @@ function exportCsv(rows) {
   const esc = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
   const lines = [
     ["Date", "Module", "Activity", "Status"].map(esc).join(","),
-    ...rows.map((r) => [formatDate(r.date), r.module, r.activity, r.status].map(esc).join(",")),
+    ...rows.map((r) =>
+      [formatDate(r.date), r.module, r.activity, r.status].map(esc).join(","),
+    ),
   ];
   const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8" });
   const url = URL.createObjectURL(blob);
@@ -49,8 +54,6 @@ function exportCsv(rows) {
   a.click();
   URL.revokeObjectURL(url);
 }
-
-/* ---------- icons ---------- */
 
 function UsersGlyph() {
   return (
@@ -91,11 +94,11 @@ function BarsGlyph() {
   );
 }
 
-/* ---------- building blocks ---------- */
-
 function Card({ className = "", children }) {
   return (
-    <div className={`rounded-xl border border-[#dce5ea] bg-white ${className}`}>{children}</div>
+    <div className={`rounded-xl border border-[#dce5ea] bg-white ${className}`}>
+      {children}
+    </div>
   );
 }
 
@@ -105,8 +108,12 @@ function IntegrationCard({ icon, title, description, actionLabel, onAction }) {
       <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#e4f3fb] text-[#0693c7]">
         {icon}
       </div>
-      <h2 className="mt-6 text-xl font-bold leading-7 text-[#021820]">{title}</h2>
-      <p className="mt-4 text-sm leading-[22px] text-[#637a8a]">{description}</p>
+      <h2 className="mt-6 text-xl font-bold leading-7 text-[#021820]">
+        {title}
+      </h2>
+      <p className="mt-4 text-sm leading-[22px] text-[#637a8a]">
+        {description}
+      </p>
       <div className="mt-5">
         <button
           type="button"
@@ -120,10 +127,6 @@ function IntegrationCard({ icon, title, description, actionLabel, onAction }) {
   );
 }
 
-/**
- * activity: [{ id?, date, module, activity, status }]   e.g. status "Available" | "Ready"
- * onPreviewPayrollImport, onExportLedgerData: () => void
- */
 export default function Integrations({
   activity = [],
   month = CURRENT_MONTH,
@@ -137,7 +140,12 @@ export default function Integrations({
   const [page, setPage] = useState(1);
 
   const statuses = useMemo(
-    () => [...new Set([...STATUS_OPTIONS, ...activity.map((a) => a.status).filter(Boolean)])],
+    () => [
+      ...new Set([
+        ...STATUS_OPTIONS,
+        ...activity.map((a) => a.status).filter(Boolean),
+      ]),
+    ],
     [activity],
   );
 
@@ -147,9 +155,15 @@ export default function Integrations({
       if (statusFilter !== "All" && a.status !== statusFilter) return false;
       if (!q) return true;
       return (
-        String(a.module ?? "").toLowerCase().includes(q) ||
-        String(a.activity ?? "").toLowerCase().includes(q) ||
-        String(a.status ?? "").toLowerCase().includes(q)
+        String(a.module ?? "")
+          .toLowerCase()
+          .includes(q) ||
+        String(a.activity ?? "")
+          .toLowerCase()
+          .includes(q) ||
+        String(a.status ?? "")
+          .toLowerCase()
+          .includes(q)
       );
     });
   }, [activity, query, statusFilter]);
@@ -169,7 +183,8 @@ export default function Integrations({
           Connected records. Clear boundaries.
         </h1>
         <p className="text-xs leading-[18px] text-[#637a8a]">
-          Exchange relevant data with the existing payroll and analytics modules.
+          Exchange relevant data with the existing payroll and analytics
+          modules.
         </p>
       </div>
 
@@ -260,7 +275,10 @@ export default function Integrations({
             <tbody>
               {loading && (
                 <tr>
-                  <td colSpan={4} className="px-5 py-14 text-center text-[#637a8a]">
+                  <td
+                    colSpan={4}
+                    className="px-5 py-14 text-center text-[#637a8a]"
+                  >
                     Loading exchange activity…
                   </td>
                 </tr>
@@ -268,15 +286,22 @@ export default function Integrations({
 
               {!loading && error && (
                 <tr>
-                  <td colSpan={4} className="px-5 py-14 text-center text-[#b0243f]">
-                    Couldn’t load exchange activity: {error}. Refresh the page to try again.
+                  <td
+                    colSpan={4}
+                    className="px-5 py-14 text-center text-[#b0243f]"
+                  >
+                    Couldn’t load exchange activity: {error}. Refresh the page
+                    to try again.
                   </td>
                 </tr>
               )}
 
               {!loading && !error && visible.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="px-5 py-14 text-center text-[#637a8a]">
+                  <td
+                    colSpan={4}
+                    className="px-5 py-14 text-center text-[#637a8a]"
+                  >
                     {activity.length === 0
                       ? "No exchange activity yet. Imports and exports will appear here."
                       : "No activity matches your search. Clear the search or choose another status."}
@@ -303,7 +328,8 @@ export default function Integrations({
                     <td className="px-4 py-5">
                       <span
                         className={`inline-block rounded-md px-3 py-1.5 text-xs font-medium ${
-                          STATUS_STYLES[a.status] || "bg-[#f3f6f8] text-[#637a8a]"
+                          STATUS_STYLES[a.status] ||
+                          "bg-[#f3f6f8] text-[#637a8a]"
                         }`}
                       >
                         {a.status}

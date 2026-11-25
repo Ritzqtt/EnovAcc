@@ -1,6 +1,9 @@
 import { useState } from "react";
 
-const CURRENT_MONTH = new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" });
+const CURRENT_MONTH = new Date().toLocaleDateString("en-US", {
+  month: "long",
+  year: "numeric",
+});
 
 const TABS = [
   { id: "income", label: "Income statement" },
@@ -8,27 +11,32 @@ const TABS = [
   { id: "cashflow", label: "Cash flow" },
 ];
 
-const peso = new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP" });
+const peso = new Intl.NumberFormat("en-PH", {
+  style: "currency",
+  currency: "PHP",
+});
 
 const FOCUS =
   "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#02355d]";
 
-// ₱1,000.00 for positives, −₱1,000.00 for negatives.
 function money(value) {
   const n = Number(value || 0);
   return n < 0 ? `−${peso.format(Math.abs(n))}` : peso.format(n);
 }
 
-const sum = (lines = []) => lines.reduce((t, l) => t + Number(l.amount || 0), 0);
-
-/* ---------- building blocks ---------- */
+const sum = (lines = []) =>
+  lines.reduce((t, l) => t + Number(l.amount || 0), 0);
 
 function ReportCard({ company, title, subtitle, children }) {
   return (
     <section className="rounded-xl border border-[#dce5ea] bg-white p-5 sm:p-8">
       <header className="border-b border-[#dce5ea] pb-4">
-        <p className="text-[10px] font-bold uppercase leading-4 text-[#0693c7]">{company}</p>
-        <h2 className="mt-2 text-xl font-bold leading-7 text-[#021820]">{title}</h2>
+        <p className="text-[10px] font-bold uppercase leading-4 text-[#0693c7]">
+          {company}
+        </p>
+        <h2 className="mt-2 text-xl font-bold leading-7 text-[#021820]">
+          {title}
+        </h2>
         <p className="mt-1 text-xs leading-[18px] text-[#637a8a]">{subtitle}</p>
       </header>
       <div className="pt-2">{children}</div>
@@ -50,7 +58,11 @@ function Line({ label, amount, strong = false, divider = false }) {
 }
 
 function GroupLabel({ children }) {
-  return <p className="pt-4 text-[10px] font-bold uppercase leading-4 text-[#637a8a]">{children}</p>;
+  return (
+    <p className="pt-4 text-[10px] font-bold uppercase leading-4 text-[#637a8a]">
+      {children}
+    </p>
+  );
 }
 
 function Group({ title, lines = [], totalLabel }) {
@@ -60,7 +72,9 @@ function Group({ title, lines = [], totalLabel }) {
       {lines.length === 0 ? (
         <p className="py-4 text-sm text-[#637a8a]">Nothing posted yet.</p>
       ) : (
-        lines.map((l, i) => <Line key={`${l.label}-${i}`} label={l.label} amount={l.amount} />)
+        lines.map((l, i) => (
+          <Line key={`${l.label}-${i}`} label={l.label} amount={l.amount} />
+        ))
       )}
       <Line label={totalLabel} amount={sum(lines)} strong divider />
     </div>
@@ -79,7 +93,9 @@ function Highlight({ label, amount }) {
 function Banner({ value, title, caption }) {
   return (
     <div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-2 rounded-lg bg-gradient-to-r from-[#02355d] to-[#0672c8] px-5 py-5 text-white">
-      <p className="text-[clamp(1.75rem,2.5vw,2.25rem)] font-bold leading-10">{value}</p>
+      <p className="text-[clamp(1.75rem,2.5vw,2.25rem)] font-bold leading-10">
+        {value}
+      </p>
       <div className="text-xs leading-[18px] text-white/80">
         <p>{title}</p>
         <p>{caption}</p>
@@ -87,8 +103,6 @@ function Banner({ value, title, caption }) {
     </div>
   );
 }
-
-/* ---------- statements ---------- */
 
 function IncomeStatement({ data, ...head }) {
   const revenue = Number(data.revenue || 0);
@@ -134,12 +148,23 @@ function BalanceSheet({ data, ...head }) {
       subtitle={`As of the end of ${head.month} · Philippine peso`}
     >
       <Group title="Assets" lines={data.assets} totalLabel="Total assets" />
-      <Group title="Liabilities" lines={data.liabilities} totalLabel="Total liabilities" />
+      <Group
+        title="Liabilities"
+        lines={data.liabilities}
+        totalLabel="Total liabilities"
+      />
       <Group title="Equity" lines={data.equity} totalLabel="Total equity" />
-      <Highlight label="Total liabilities and equity" amount={liabilities + equity} />
+      <Highlight
+        label="Total liabilities and equity"
+        amount={liabilities + equity}
+      />
       <Banner
         value={balanced ? "Balanced" : money(Math.abs(diff))}
-        title={balanced ? "Assets equal liabilities plus equity." : "Assets and liabilities plus equity differ."}
+        title={
+          balanced
+            ? "Assets equal liabilities plus equity."
+            : "Assets and liabilities plus equity differ."
+        }
         caption={
           balanced
             ? "Based on posted ledger entries."
@@ -163,9 +188,21 @@ function CashFlow({ data, ...head }) {
       title="Cash flow"
       subtitle={`For the month of ${head.month} · Philippine peso`}
     >
-      <Group title="Operating activities" lines={data.operating} totalLabel="Net cash from operating activities" />
-      <Group title="Investing activities" lines={data.investing} totalLabel="Net cash from investing activities" />
-      <Group title="Financing activities" lines={data.financing} totalLabel="Net cash from financing activities" />
+      <Group
+        title="Operating activities"
+        lines={data.operating}
+        totalLabel="Net cash from operating activities"
+      />
+      <Group
+        title="Investing activities"
+        lines={data.investing}
+        totalLabel="Net cash from investing activities"
+      />
+      <Group
+        title="Financing activities"
+        lines={data.financing}
+        totalLabel="Net cash from financing activities"
+      />
       <Highlight label="Net change in cash" amount={net} />
       <Banner
         value={money(opening + net)}
@@ -176,11 +213,6 @@ function CashFlow({ data, ...head }) {
   );
 }
 
-/**
- * incomeStatement: { revenue, operatingExpenses, salaryExpenses }
- * balanceSheet:    { assets, liabilities, equity }   each [{ label, amount }]
- * cashFlow:        { openingCash, operating, investing, financing }  each [{ label, amount }]
- */
 export default function FinancialReports({
   incomeStatement,
   balanceSheet,
@@ -212,7 +244,11 @@ export default function FinancialReports({
         </p>
       </div>
 
-      <div role="group" aria-label="Financial statement" className="flex flex-wrap gap-2">
+      <div
+        role="group"
+        aria-label="Financial statement"
+        className="flex flex-wrap gap-2"
+      >
         {TABS.map((t) => {
           const active = tab === t.id;
           return (
@@ -241,13 +277,20 @@ export default function FinancialReports({
 
       {!loading && error && (
         <div className="rounded-xl border border-[#dce5ea] bg-white px-5 py-14 text-center text-sm text-[#b0243f]">
-          Couldn’t load financial statements: {error}. Refresh the page to try again.
+          Couldn’t load financial statements: {error}. Refresh the page to try
+          again.
         </div>
       )}
 
-      {!loading && !error && tab === "income" && <IncomeStatement data={income} {...head} />}
-      {!loading && !error && tab === "balance" && <BalanceSheet data={balance} {...head} />}
-      {!loading && !error && tab === "cashflow" && <CashFlow data={cash} {...head} />}
+      {!loading && !error && tab === "income" && (
+        <IncomeStatement data={income} {...head} />
+      )}
+      {!loading && !error && tab === "balance" && (
+        <BalanceSheet data={balance} {...head} />
+      )}
+      {!loading && !error && tab === "cashflow" && (
+        <CashFlow data={cash} {...head} />
+      )}
     </main>
   );
 }

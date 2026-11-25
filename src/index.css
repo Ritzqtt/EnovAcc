@@ -1,17 +1,13 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
 :root {
-  /* Reference canvas: 1287 × 731. One unit scales the whole desktop layout. */
   --u: min(calc(100vw / 1287), calc(100vh / 731));
-
   --brand-sky: #40c9ff;
   --brand-azure: #1d7fd6;
   --brand-ocean: #0a4fb0;
   --brand-royal: #00359b;
   --brand-navy: #00214f;
-
   --hero-gradient: linear-gradient(
     100deg,
     #40c9ff 0%,
@@ -20,49 +16,37 @@
     #00359b 72%,
     #00214f 100%
   );
-
-  /* Master multiplier for the landing entrance: 1 = normal, 2 = half speed. */
   --enter-speed: 1;
-
   color-scheme: light;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-
 @layer base {
   html {
     @apply scroll-smooth;
     scrollbar-width: none;
   }
-
   html::-webkit-scrollbar {
     display: none;
   }
-
   body {
     @apply m-0 min-w-[320px] overflow-x-hidden bg-brand-royal font-sans text-white antialiased;
   }
-
   #root {
     @apply min-h-screen;
   }
-
   ::selection {
     background: rgb(64 201 255 / 35%);
     color: #fff;
   }
 }
-
 @layer utilities {
   .text-balance {
     text-wrap: balance;
   }
 }
-
-/* ── Watermark ─────────────────────────────────────────────────────────── */
-
 .hero-watermark {
   position: absolute;
   left: -2vw;
@@ -73,7 +57,6 @@
   opacity: 0.16;
   filter: brightness(0) invert(1);
 }
-
 @media (min-width: 640px) {
   .hero-watermark {
     left: 1vw;
@@ -81,13 +64,11 @@
     width: 175vw;
   }
 }
-
 @media (min-width: 1024px) {
   .hero-watermark {
     --wm-x: calc(max(0px, 100vw - 100vh * 1.7606) + 1.5vw);
     --wm-y: -15vh;
     --wm-scale: 1;
-
     left: calc(var(--u) * 128);
     top: calc(var(--u) * -156);
     width: calc(var(--u) * 1600);
@@ -95,9 +76,6 @@
     transform-origin: top left;
   }
 }
-
-/* ── Desktop reference layout ──────────────────────────────────────────── */
-
 @media (min-width: 1024px) {
   .hero-copy {
     position: absolute;
@@ -106,26 +84,21 @@
     display: block;
     width: calc(var(--u) * 700);
   }
-
   .hero-logo {
     position: absolute;
     left: 0;
     top: calc(var(--u) * 76);
   }
-
   .hero-logo a {
     gap: calc(var(--u) * 6);
   }
-
   .hero-logo img {
     width: calc(var(--u) * 22);
     height: calc(var(--u) * 22);
   }
-
   .hero-logo span {
     font-size: calc(var(--u) * 21);
   }
-
   .hero-tagline {
     position: absolute;
     left: 0;
@@ -136,9 +109,6 @@
     line-height: 1;
     letter-spacing: 0.04em;
   }
-
-  /* Extra specificity beats Tailwind's `sm:` utilities, which are emitted
-     after this stylesheet's custom rules. */
   .hero-copy .hero-title {
     position: absolute;
     left: 0;
@@ -150,7 +120,6 @@
     line-height: 0.9;
     letter-spacing: -0.005em;
   }
-
   .hero-copy .hero-subtitle {
     position: absolute;
     left: 0;
@@ -162,14 +131,12 @@
     line-height: 1.25;
     color: rgb(255 255 255 / 95%);
   }
-
   .hero-copy .hero-actions {
     position: absolute;
     left: 0;
     top: calc(var(--u) * 551);
     margin: 0;
   }
-
   .hero-copy .hero-cta {
     width: calc(var(--u) * 171);
     height: calc(var(--u) * 34);
@@ -177,10 +144,8 @@
     border-radius: calc(var(--u) * 4);
     padding-inline: calc(var(--u) * 14);
     font-size: calc(var(--u) * 10.5);
-    box-shadow: 0 calc(var(--u) * 8) calc(var(--u) * 18)
-      rgb(0 15 35 / 45%);
+    box-shadow: 0 calc(var(--u) * 8) calc(var(--u) * 18) rgb(0 15 35 / 45%);
   }
-
   .hero-cluster {
     position: absolute;
     right: 6.4vw;
@@ -189,7 +154,6 @@
     width: calc(var(--u) * 542);
     height: calc(var(--u) * 451);
   }
-
   .hero-cluster-inner {
     width: 100%;
     height: 100%;
@@ -197,20 +161,17 @@
     aspect-ratio: auto;
     margin: 0;
   }
-
   .hero-panel-wrap {
     left: calc(var(--u) * 107);
     top: calc(var(--u) * 58);
     width: calc(var(--u) * 415);
     height: calc(var(--u) * 333);
   }
-
   .hero-panel {
     border-radius: calc(var(--u) * 45);
     backdrop-filter: blur(calc(var(--u) * 3));
     -webkit-backdrop-filter: blur(calc(var(--u) * 3));
   }
-
   .hero-month-wrap {
     right: 0;
     left: auto;
@@ -219,36 +180,30 @@
     width: calc(var(--u) * 317);
     height: calc(var(--u) * 138);
   }
-
   .hero-month-wrap .month-close-card {
     padding: calc(var(--u) * 22);
     border-radius: calc(var(--u) * 8);
     backdrop-filter: blur(calc(var(--u) * 6));
     -webkit-backdrop-filter: blur(calc(var(--u) * 6));
   }
-
   .hero-month-wrap .month-close-label {
     font-size: calc(var(--u) * 8.5);
     font-weight: 700;
     letter-spacing: 0.05em;
   }
-
   .hero-month-wrap .month-close-value {
     font-size: calc(var(--u) * 31);
     font-weight: 500;
     letter-spacing: 0;
   }
-
   .hero-month-wrap .month-close-track {
     height: calc(var(--u) * 7);
     margin-top: calc(var(--u) * 6);
     background: rgb(255 255 255 / 55%);
   }
-
   .hero-month-wrap .month-close-fill {
     background: #0a8fcc;
   }
-
   .hero-cash-wrap {
     right: auto;
     bottom: auto;
@@ -257,43 +212,32 @@
     width: calc(var(--u) * 290);
     height: calc(var(--u) * 138);
   }
-
   .hero-cash-wrap .cash-card {
     padding: calc(var(--u) * 22);
     border-radius: calc(var(--u) * 6);
-    box-shadow: 0 calc(var(--u) * 8) calc(var(--u) * 24)
-      rgb(0 20 60 / 25%);
+    box-shadow: 0 calc(var(--u) * 8) calc(var(--u) * 24) rgb(0 20 60 / 25%);
   }
-
   .hero-cash-wrap .cash-label {
     color: #0a85c0;
     font-size: calc(var(--u) * 8.5);
     font-weight: 600;
     letter-spacing: 0.04em;
   }
-
   .hero-cash-wrap .cash-value {
     color: #00305f;
     font-size: calc(var(--u) * 32);
     font-weight: 700;
     letter-spacing: -0.01em;
   }
-
   .hero-cash-wrap .cash-caption {
     color: #7a8794;
     font-size: calc(var(--u) * 8.5);
   }
 }
-
-/* ── Landing entrance ──────────────────────────────────────────────────────
-   Timings are driven from JSX via --enter-delay / --enter-duration, and all
-   of them are multiplied by the single --enter-speed knob in :root. */
-
 .hero-root .hero-enter {
   opacity: 0;
   will-change: opacity, transform;
 }
-
 .hero-root.is-entering .hero-enter {
   animation-name: hero-enter-rise;
   animation-duration: calc(var(--enter-duration, 0.3s) * var(--enter-speed));
@@ -301,11 +245,9 @@
   animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
   animation-fill-mode: both;
 }
-
 .hero-root.is-entering .hero-enter-logo {
   animation-name: hero-enter-pop;
 }
-
 @keyframes hero-enter-rise {
   from {
     opacity: 0;
@@ -316,7 +258,6 @@
     transform: translate3d(0, 0, 0);
   }
 }
-
 @keyframes hero-enter-pop {
   from {
     opacity: 0;
@@ -327,17 +268,13 @@
     transform: scale(1);
   }
 }
-
-/* The month-close bar fills once as the page enters; the 82% label is static. */
 .hero-root .month-close-fill {
   width: 0;
 }
-
 .hero-root.is-entering .month-close-fill {
   animation: hero-enter-progress calc(1.4s * var(--enter-speed))
     cubic-bezier(0.22, 1, 0.36, 1) calc(0s * var(--enter-speed)) both;
 }
-
 @keyframes hero-enter-progress {
   from {
     width: 0%;
@@ -346,7 +283,6 @@
     width: var(--progress-width);
   }
 }
-
 @keyframes content-enter {
   from {
     opacity: 0;
@@ -357,27 +293,22 @@
     transform: translate3d(0, 0, 0);
   }
 }
-
 .content-enter {
   animation: content-enter 220ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
-
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
   }
-
   .hero-root .hero-enter {
     opacity: 1;
     transform: none;
     animation: none;
   }
-
   .hero-root .month-close-fill {
     width: var(--progress-width);
     animation: none;
   }
-
   *,
   *::before,
   *::after {

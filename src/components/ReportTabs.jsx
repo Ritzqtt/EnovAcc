@@ -4,11 +4,6 @@ const card = "rounded-xl border border-[#dce5ea] bg-white";
 const focusRing =
   "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#02355d]";
 
-/**
- * Tabbed financial statements.
- * tabs: [{ name, title, sub, rows: [[label, value, kind]], note?: { big, line1, line2 } }]
- * kind === "total" renders the highlighted total row.
- */
 export default function ReportTabs({ company, tabs = [] }) {
   const [active, setActive] = useState(0);
   const tab = tabs[active];
@@ -36,10 +31,7 @@ export default function ReportTabs({ company, tabs = [] }) {
         ))}
       </div>
 
-      <section
-        role="tabpanel"
-        className={`${card} flex flex-col gap-3 p-8`}
-      >
+      <section role="tabpanel" className={`${card} flex flex-col gap-3 p-8`}>
         <p className="text-[10px] font-bold leading-4 text-[#0693c7]">
           {company}
         </p>
@@ -68,7 +60,7 @@ export default function ReportTabs({ company, tabs = [] }) {
               <p>{label}</p>
               <p>{value}</p>
             </div>
-          )
+          ),
         )}
 
         {tab.note && (

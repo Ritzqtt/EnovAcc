@@ -6,12 +6,6 @@ const card = "rounded-xl border border-[#dce5ea] bg-white";
 const btnSecondary =
   "flex h-11 items-center justify-center rounded-lg border border-[#dce5ea] bg-white px-4 text-[13px] font-bold leading-5 text-[#02355d] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#02355d]";
 
-/**
- * Generic data table with working search, filter and CSV export.
- *
- * columns  [["HEADER", flex, type], ...]   type: "" | "code" | "ref" | "badge" | "link"
- * rows     [[cell, cell, ...], ...]        an optional trailing boolean highlights the row
- */
 export default function DataTable({
   title,
   filterBy = "",
@@ -25,13 +19,12 @@ export default function DataTable({
   const [filter, setFilter] = useState("All records");
 
   const filterIdx = columns.findIndex(
-    (c) => c[0].toLowerCase() === filterBy.toLowerCase()
+    (c) => c[0].toLowerCase() === filterBy.toLowerCase(),
   );
 
   const options = useMemo(
-    () =>
-      filterIdx < 0 ? [] : [...new Set(rows.map((r) => r[filterIdx]))],
-    [rows, filterIdx]
+    () => (filterIdx < 0 ? [] : [...new Set(rows.map((r) => r[filterIdx]))]),
+    [rows, filterIdx],
   );
 
   const visible = rows.filter((r) => {
@@ -45,9 +38,7 @@ export default function DataTable({
   });
 
   const gridStyle = {
-    gridTemplateColumns: columns
-      .map((c) => `minmax(0, ${c[1]}fr)`)
-      .join(" "),
+    gridTemplateColumns: columns.map((c) => `minmax(0, ${c[1]}fr)`).join(" "),
   };
 
   function exportCsv() {
@@ -69,7 +60,7 @@ export default function DataTable({
 
   return (
     <section className={`${card} overflow-hidden`}>
-      {/* controls */}
+      {}
       <div className="flex flex-wrap items-center gap-4 p-5">
         <h2 className="text-[19px] font-bold leading-7 text-[#021820]">
           {title}
@@ -110,7 +101,7 @@ export default function DataTable({
         </button>
       </div>
 
-      {/* table */}
+      {}
       <div className="overflow-x-auto">
         <div className="min-w-[880px]" role="table" aria-label={title}>
           <div

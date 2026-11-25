@@ -1,16 +1,61 @@
-# React + Vite
+# EnovAcc
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+EnovAcc is a finance workspace built with React and Vite. It includes dashboard reporting, accounting modules, authentication flows, workspace management, and Supabase-backed profile data.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Dashboard with cash position, month close, and approval summaries
+- Chart of accounts and general ledger
+- Journal entries and financial reports
+- Invoices, payables, expenses, and bank reconciliation
+- Tax summaries and integration status
+- Audit trail and workspace user management
+- Account settings and password management
+- Password and OTP-based authentication through Supabase
 
-## React Compiler
+## Requirements
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- Node.js 20 or newer
+- npm
+- A Supabase project
 
-## Expanding the ESLint configuration
+## Environment setup
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Create a local environment file with:
+
+```env
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+```
+
+The application reads these variables from `src/lib/supabase.js`.
+
+## Installation
+
+```bash
+npm install
+```
+
+## Development
+
+```bash
+npm run dev
+```
+
+Vite prints the local development URL in the terminal.
+
+## Quality and build commands
+
+```bash
+npm run lint
+npm run build
+npm run preview
+```
+
+## Project structure
+
+- `src/App.jsx` - application routing and authentication state
+- `src/components/` - workspace, navigation, reporting, and authentication components
+- `src/lib/supabase.js` - Supabase client configuration
+- `src/assets/` - application images
+- `public/` - static public assets

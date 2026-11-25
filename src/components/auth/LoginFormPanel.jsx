@@ -1,12 +1,12 @@
-import { useEffect, useState } from 'react'
-import OtpPanel from './OtpPanel'
-import PostLoginLoader from './PostLoginLoader'
+import { useEffect, useState } from "react";
+import OtpPanel from "./OtpPanel";
+import PostLoginLoader from "./PostLoginLoader";
 
 const textLink =
-  'p-0 text-[16px] leading-[22px] text-[#0693c7] hover:underline focus-visible:rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0693c7]'
+  "p-0 text-[16px] leading-[22px] text-[#0693c7] hover:underline focus-visible:rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0693c7]";
 
 const inputClass =
-  'box-border h-12 w-full rounded-lg border border-[#dce5ea] bg-white p-3 text-[16px] leading-[22px] text-[#021820] placeholder:text-[#637a8a] focus-visible:border-[#0693c7] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#0693c7] aria-[invalid=true]:border-[#e5484d]'
+  "box-border h-12 w-full rounded-lg border border-[#dce5ea] bg-white p-3 text-[16px] leading-[22px] text-[#021820] placeholder:text-[#637a8a] focus-visible:border-[#0693c7] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#0693c7] aria-[invalid=true]:border-[#e5484d]";
 
 function EyeIcon({ off }) {
   return (
@@ -35,29 +35,9 @@ function EyeIcon({ off }) {
         </>
       )}
     </svg>
-  )
+  );
 }
 
-/**
- * The white half of the auth surface. It is always mounted so the panel can
- * slide in/out; AuthSurface controls visibility, focus and inertness.
- *
- * Flow: login  ->  otp  ->  loading  ->  onLoadingComplete()
- *
- * Props:
- *  onSignIn(email, password)     async; checks credentials and sends the code.
- *                                Resolve with { challengeId, maskedEmail },
- *                                reject on failure.
- *  onSignInFailed(err)           called when sign in fails
- *  onVerifyOtp(challengeId, code) async; reject with an Error on a wrong code
- *  onResendOtp(challengeId)      async; reject with an Error on failure
- *  onLoadingComplete             navigate to the dashboard here
- *  loadingDuration               how long the loading step shows, in ms (default 2400)
- *  notice                        optional success message shown above the form
- *                                (e.g. after a password reset)
- *  onBackToLanding, onForgotPassword  navigation callbacks
- *  emailRef                      forwarded to the email input for post-transition focus
- */
 export default function LoginFormPanel({
   onSignIn,
   onSignInFailed,
@@ -70,68 +50,67 @@ export default function LoginFormPanel({
   onForgotPassword,
   emailRef,
 }) {
-  const [step, setStep] = useState('login') // 'login' | 'otp' | 'loading'
-  const [challenge, setChallenge] = useState(null)
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [signingIn, setSigningIn] = useState(false)
-  const [fieldErrors, setFieldErrors] = useState({})
-  const [formError, setFormError] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
+  const [step, setStep] = useState("login");
+  const [challenge, setChallenge] = useState(null);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [signingIn, setSigningIn] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [formError, setFormError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
-  // Loading step: show for a moment, then continue to the dashboard.
   useEffect(() => {
-    if (step !== 'loading') return
-    const id = setTimeout(() => onLoadingComplete?.(), loadingDuration)
-    return () => clearTimeout(id)
-  }, [step, loadingDuration, onLoadingComplete])
+    if (step !== "loading") return;
+    const id = setTimeout(() => onLoadingComplete?.(), loadingDuration);
+    return () => clearTimeout(id);
+  }, [step, loadingDuration, onLoadingComplete]);
 
   async function handleSubmit(e) {
-    e.preventDefault()
-    if (signingIn) return
+    e.preventDefault();
+    if (signingIn) return;
 
-    const nextErrors = {}
-    if (!email.trim()) nextErrors.email = 'Email address is required.'
-    if (!password) nextErrors.password = 'Password is required.'
-    setFieldErrors(nextErrors)
-    if (Object.keys(nextErrors).length > 0) return
+    const nextErrors = {};
+    if (!email.trim()) nextErrors.email = "Email address is required.";
+    if (!password) nextErrors.password = "Password is required.";
+    setFieldErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) return;
 
-    setFormError('')
-    setSigningIn(true)
+    setFormError("");
+    setSigningIn(true);
     try {
-      const result = await onSignIn(email.trim(), password)
-      setChallenge(result)
-      setStep('otp')
+      const result = await onSignIn(email.trim(), password);
+      setChallenge(result);
+      setStep("otp");
     } catch (err) {
-      setFormError(err?.message || 'Unable to sign in. Try again.')
-      onSignInFailed?.(err)
+      setFormError(err?.message || "Unable to sign in. Try again.");
+      onSignInFailed?.(err);
     } finally {
-      setSigningIn(false)
+      setSigningIn(false);
     }
   }
 
   async function handleVerify(code) {
-    await onVerifyOtp(challenge.challengeId, code)
-    setStep('loading')
+    await onVerifyOtp(challenge.challengeId, code);
+    setStep("loading");
   }
 
   function handleResend() {
-    return onResendOtp(challenge.challengeId)
+    return onResendOtp(challenge.challengeId);
   }
 
   function handleBackToLogin() {
-    setFormError('')
-    setPassword('')
-    setChallenge(null)
-    setStep('login')
+    setFormError("");
+    setPassword("");
+    setChallenge(null);
+    setStep("login");
   }
 
   return (
     <div className="auth-form-centered">
       <div className="auth-form-column flex w-full flex-col">
-        {step === 'loading' ? (
+        {step === "loading" ? (
           <PostLoginLoader />
-        ) : step === 'otp' ? (
+        ) : step === "otp" ? (
           <OtpPanel
             maskedEmail={challenge?.maskedEmail ?? email}
             onVerify={handleVerify}
@@ -140,8 +119,15 @@ export default function LoginFormPanel({
           />
         ) : (
           <>
-            <div className="auth-form-item self-center" style={{ '--stagger': 0 }}>
-              <button type="button" onClick={onBackToLanding} className={textLink}>
+            <div
+              className="auth-form-item self-center"
+              style={{ "--stagger": 0 }}
+            >
+              <button
+                type="button"
+                onClick={onBackToLanding}
+                className={textLink}
+              >
                 ← Back to landing page
               </button>
             </div>
@@ -153,20 +139,20 @@ export default function LoginFormPanel({
             >
               <p
                 className="auth-form-item text-[16px] font-bold leading-4 text-[#0693c7]"
-                style={{ '--stagger': 1 }}
+                style={{ "--stagger": 1 }}
               >
                 WELCOME BACK
               </p>
               <h2
                 id="login-heading"
                 className="auth-form-item whitespace-nowrap text-[clamp(28px,4.4vw,42px)] font-bold leading-[1.1] text-[#021820]"
-                style={{ '--stagger': 2 }}
+                style={{ "--stagger": 2 }}
               >
                 Your workspace awaits.
               </h2>
               <p
                 className="auth-form-item text-[16px] leading-[22px] text-[#637a8a]"
-                style={{ '--stagger': 3 }}
+                style={{ "--stagger": 3 }}
               >
                 Sign in to review, record, and move forward.
               </p>
@@ -182,9 +168,12 @@ export default function LoginFormPanel({
 
               <div
                 className="auth-form-item flex w-full flex-col gap-2"
-                style={{ '--stagger': 4 }}
+                style={{ "--stagger": 4 }}
               >
-                <label htmlFor="login-email" className="text-[16px] font-bold leading-5 text-[#021820]">
+                <label
+                  htmlFor="login-email"
+                  className="text-[16px] font-bold leading-5 text-[#021820]"
+                >
                   Email Address
                 </label>
                 <input
@@ -195,10 +184,10 @@ export default function LoginFormPanel({
                   placeholder="Enter Email Address"
                   value={email}
                   onChange={(e) => {
-                    setEmail(e.target.value)
-                    setFormError('')
+                    setEmail(e.target.value);
+                    setFormError("");
                     if (fieldErrors.email) {
-                      setFieldErrors((prev) => ({ ...prev, email: '' }))
+                      setFieldErrors((prev) => ({ ...prev, email: "" }));
                     }
                   }}
                   aria-invalid={fieldErrors.email ? true : undefined}
@@ -206,29 +195,34 @@ export default function LoginFormPanel({
                   className={inputClass}
                 />
                 {fieldErrors.email && (
-                  <p className="text-sm leading-5 text-[#e5484d]">{fieldErrors.email}</p>
+                  <p className="text-sm leading-5 text-[#e5484d]">
+                    {fieldErrors.email}
+                  </p>
                 )}
               </div>
 
               <div
                 className="auth-form-item flex w-full flex-col gap-2"
-                style={{ '--stagger': 5 }}
+                style={{ "--stagger": 5 }}
               >
-                <label htmlFor="login-password" className="text-[16px] font-bold leading-5 text-[#021820]">
+                <label
+                  htmlFor="login-password"
+                  className="text-[16px] font-bold leading-5 text-[#021820]"
+                >
                   Password
                 </label>
                 <div className="relative w-full">
                   <input
                     id="login-password"
-                    type={showPassword ? 'text' : 'password'}
+                    type={showPassword ? "text" : "password"}
                     autoComplete="current-password"
                     placeholder="Enter Password"
                     value={password}
                     onChange={(e) => {
-                      setPassword(e.target.value)
-                      setFormError('')
+                      setPassword(e.target.value);
+                      setFormError("");
                       if (fieldErrors.password) {
-                        setFieldErrors((prev) => ({ ...prev, password: '' }))
+                        setFieldErrors((prev) => ({ ...prev, password: "" }));
                       }
                     }}
                     aria-invalid={fieldErrors.password ? true : undefined}
@@ -238,7 +232,9 @@ export default function LoginFormPanel({
                   <button
                     type="button"
                     onClick={() => setShowPassword((v) => !v)}
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    aria-label={
+                      showPassword ? "Hide password" : "Show password"
+                    }
                     aria-pressed={showPassword}
                     className="absolute right-1 top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-md text-[#637a8a] hover:text-[#021820] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#0693c7]"
                   >
@@ -246,7 +242,9 @@ export default function LoginFormPanel({
                   </button>
                 </div>
                 {fieldErrors.password && (
-                  <p className="text-sm leading-5 text-[#e5484d]">{fieldErrors.password}</p>
+                  <p className="text-sm leading-5 text-[#e5484d]">
+                    {fieldErrors.password}
+                  </p>
                 )}
               </div>
 
@@ -263,21 +261,21 @@ export default function LoginFormPanel({
                 type="submit"
                 disabled={signingIn}
                 className="auth-form-item box-border inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#38bdf8] p-3 text-[15px] font-bold leading-5 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#02355d] disabled:cursor-not-allowed disabled:opacity-60"
-                style={{ '--stagger': 6 }}
+                style={{ "--stagger": 6 }}
               >
-                {signingIn ? 'Signing in…' : 'Sign In to EnovAcc  →'}
+                {signingIn ? "Signing in…" : "Sign In to EnovAcc  →"}
               </button>
 
               <hr
                 className="auth-form-item m-0 h-px w-full border-0 bg-[#dce5ea]"
-                style={{ '--stagger': 7 }}
+                style={{ "--stagger": 7 }}
               />
 
               <button
                 type="button"
                 onClick={onForgotPassword}
                 className={`${textLink} auth-form-item`}
-                style={{ '--stagger': 7 }}
+                style={{ "--stagger": 7 }}
               >
                 Forgot password?
               </button>
@@ -286,5 +284,5 @@ export default function LoginFormPanel({
         )}
       </div>
     </div>
-  )
+  );
 }

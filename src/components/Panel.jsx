@@ -2,7 +2,6 @@ const card = "rounded-xl border border-[#dce5ea] bg-white";
 const btnSecondary =
   "flex h-11 items-center justify-center rounded-lg border border-[#dce5ea] bg-white px-4 text-[13px] font-bold leading-5 text-[#02355d] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#02355d]";
 
-/** One side panel. type: "list" | "highlight" | "calc" | "notice" */
 function Panel({ panel }) {
   if (panel.type === "list")
     return (
@@ -77,10 +76,8 @@ function Panel({ panel }) {
   return null;
 }
 
-/** Lays out a config's `panels` array: two-up when every panel is box-shaped. */
 export default function PanelGroup({ panels = [] }) {
-  const twoUp =
-    panels.length > 1 && panels.every((p) => p.type !== "notice");
+  const twoUp = panels.length > 1 && panels.every((p) => p.type !== "notice");
 
   return (
     <div

@@ -1,7 +1,10 @@
 import { useMemo, useState } from "react";
 import { Icon } from "./AppShell";
 
-const CURRENT_MONTH = new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" });
+const CURRENT_MONTH = new Date().toLocaleDateString("en-US", {
+  month: "long",
+  year: "numeric",
+});
 
 const PAGE_SIZE = 15;
 
@@ -11,10 +14,7 @@ const STATUS_STYLES = {
   Inactive: "bg-[#f3f6f8] text-[#637a8a]",
 };
 
-// Always offered in the role filter, even before any data exists.
 const ROLE_OPTIONS = ["Administrator", "Finance Manager", "Accounting"];
-
-// Rows with these roles get the light blue row tint.
 const TINTED_ROLES = new Set(["Administrator"]);
 
 const FOCUS =
@@ -22,7 +22,6 @@ const FOCUS =
 
 const plural = (count, word) => `${count} ${word}${count === 1 ? "" : "s"}`;
 
-// Accepts either the form used in this page or raw Supabase profile fields.
 const nameOf = (u) => u.full_name ?? u.name ?? "";
 const roleOf = (u) => u.role_name ?? u.role ?? "";
 
@@ -30,7 +29,9 @@ function exportCsv(rows) {
   const esc = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
   const lines = [
     ["Name", "Email", "Role", "Status"].map(esc).join(","),
-    ...rows.map((u) => [nameOf(u), u.email, roleOf(u), u.status].map(esc).join(",")),
+    ...rows.map((u) =>
+      [nameOf(u), u.email, roleOf(u), u.status].map(esc).join(","),
+    ),
   ];
   const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8" });
   const url = URL.createObjectURL(blob);
@@ -43,15 +44,12 @@ function exportCsv(rows) {
 
 function Card({ className = "", children }) {
   return (
-    <div className={`rounded-xl border border-[#dce5ea] bg-white ${className}`}>{children}</div>
+    <div className={`rounded-xl border border-[#dce5ea] bg-white ${className}`}>
+      {children}
+    </div>
   );
 }
 
-/**
- * users: [{ id?, full_name | name, email, role_name | role, status }]   status e.g. "Active" | "Inactive"
- * onInviteUser: () => void
- * The "All records" filter is by role: Administrator, Finance Manager, Accounting, plus any other role found in the data.
- */
 export default function UsersRoles({
   users = [],
   month = CURRENT_MONTH,
@@ -75,7 +73,9 @@ export default function UsersRoles({
       if (!q) return true;
       return (
         nameOf(u).toLowerCase().includes(q) ||
-        String(u.email ?? "").toLowerCase().includes(q) ||
+        String(u.email ?? "")
+          .toLowerCase()
+          .includes(q) ||
         roleOf(u).toLowerCase().includes(q)
       );
     });
@@ -180,7 +180,10 @@ export default function UsersRoles({
             <tbody>
               {loading && (
                 <tr>
-                  <td colSpan={4} className="px-5 py-14 text-center text-[#637a8a]">
+                  <td
+                    colSpan={4}
+                    className="px-5 py-14 text-center text-[#637a8a]"
+                  >
                     Loading workspace members…
                   </td>
                 </tr>
@@ -188,15 +191,22 @@ export default function UsersRoles({
 
               {!loading && error && (
                 <tr>
-                  <td colSpan={4} className="px-5 py-14 text-center text-[#b0243f]">
-                    Couldn’t load workspace members: {error}. Refresh the page to try again.
+                  <td
+                    colSpan={4}
+                    className="px-5 py-14 text-center text-[#b0243f]"
+                  >
+                    Couldn’t load workspace members: {error}. Refresh the page
+                    to try again.
                   </td>
                 </tr>
               )}
 
               {!loading && !error && visible.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="px-5 py-14 text-center text-[#637a8a]">
+                  <td
+                    colSpan={4}
+                    className="px-5 py-14 text-center text-[#637a8a]"
+                  >
                     {users.length === 0
                       ? "No members yet. Invite a user to give them access to this workspace."
                       : "No members match your search. Clear the search or choose another role."}
@@ -215,13 +225,16 @@ export default function UsersRoles({
                         : "bg-white hover:bg-[#f3f8fb]"
                     }`}
                   >
-                    <td className="px-5 py-5 font-bold text-[#0693c7]">{nameOf(u)}</td>
+                    <td className="px-5 py-5 font-bold text-[#0693c7]">
+                      {nameOf(u)}
+                    </td>
                     <td className="px-4 py-5 text-[#021820]">{u.email}</td>
                     <td className="px-4 py-5 text-[#021820]">{roleOf(u)}</td>
                     <td className="px-4 py-5">
                       <span
                         className={`inline-block min-w-[112px] rounded-md px-3 py-1.5 text-center text-xs font-medium ${
-                          STATUS_STYLES[u.status] || "bg-[#f3f6f8] text-[#637a8a]"
+                          STATUS_STYLES[u.status] ||
+                          "bg-[#f3f6f8] text-[#637a8a]"
                         }`}
                       >
                         {u.status}

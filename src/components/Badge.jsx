@@ -9,7 +9,6 @@ const BADGE_TONE = {
   Inactive: "bg-[#f3f6f8] text-[#637a8a]",
 };
 
-/** Pill used for status columns and integration cards. */
 export default function Badge({ label, wide = true }) {
   const tone = BADGE_TONE[label] ?? "bg-[#e9f4f8] text-[#0693c7]";
   return (

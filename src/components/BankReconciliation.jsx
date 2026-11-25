@@ -1,7 +1,10 @@
 import { useMemo, useState } from "react";
 import { Icon } from "./AppShell";
 
-const CURRENT_MONTH = new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" });
+const CURRENT_MONTH = new Date().toLocaleDateString("en-US", {
+  month: "long",
+  year: "numeric",
+});
 
 const STATUSES = ["Matched", "Unmatched"];
 
@@ -12,7 +15,10 @@ const STATUS_STYLES = {
 
 const PAGE_SIZE = 12;
 
-const peso = new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP" });
+const peso = new Intl.NumberFormat("en-PH", {
+  style: "currency",
+  currency: "PHP",
+});
 
 const FOCUS =
   "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#02355d]";
@@ -24,7 +30,9 @@ const plural = (count, word) => `${count} ${word}${count === 1 ? "" : "s"}`;
 function parseDate(value) {
   if (value instanceof Date) return value;
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value ?? ""));
-  return m ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])) : new Date(value);
+  return m
+    ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]))
+    : new Date(value);
 }
 
 function formatDate(value) {
@@ -33,7 +41,6 @@ function formatDate(value) {
   return `${pad(d.getDate())} ${d.toLocaleDateString("en-US", { month: "short" })} ${d.getFullYear()}`;
 }
 
-// "+ ₱30,000.00" for money in, "− ₱8,000.00" for money out.
 function formatSigned(amount) {
   const n = Number(amount || 0);
   const sign = n < 0 ? "−" : "+";
@@ -45,7 +52,9 @@ const isMatched = (m) => m.status === "Matched";
 function exportCsv(rows) {
   const esc = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
   const lines = [
-    ["Date", "Bank description", "Amount", "Journal", "Status"].map(esc).join(","),
+    ["Date", "Bank description", "Amount", "Journal", "Status"]
+      .map(esc)
+      .join(","),
     ...rows.map((r) =>
       [
         formatDate(r.date),
@@ -69,7 +78,9 @@ function exportCsv(rows) {
 
 function Card({ className = "", children }) {
   return (
-    <div className={`rounded-xl border border-[#dce5ea] bg-white ${className}`}>{children}</div>
+    <div className={`rounded-xl border border-[#dce5ea] bg-white ${className}`}>
+      {children}
+    </div>
   );
 }
 
@@ -85,13 +96,6 @@ function StatCard({ label, value, caption }) {
   );
 }
 
-/**
- * movements: [{ id?, date, description, amount (signed: + in, − out),
- *               journal?, status: "Matched" | "Unmatched", suggestedJournal? }]
- *
- * Unmatched rows with a `suggestedJournal` show "Find match →";
- * unmatched rows without one show "Create entry →".
- */
 export default function BankReconciliation({
   movements = [],
   ledgerBalance = 0,
@@ -114,8 +118,12 @@ export default function BankReconciliation({
       if (statusFilter !== "All" && m.status !== statusFilter) return false;
       if (!q) return true;
       return (
-        String(m.description ?? "").toLowerCase().includes(q) ||
-        String(m.journal ?? "").toLowerCase().includes(q)
+        String(m.description ?? "")
+          .toLowerCase()
+          .includes(q) ||
+        String(m.journal ?? "")
+          .toLowerCase()
+          .includes(q)
       );
     });
   }, [movements, query, statusFilter]);
@@ -132,7 +140,10 @@ export default function BankReconciliation({
       total: movements.length,
       matchedCount: matched.length,
       unmatchedCount: unmatched.length,
-      unmatchedAmount: unmatched.reduce((t, m) => t + Math.abs(Number(m.amount || 0)), 0),
+      unmatchedAmount: unmatched.reduce(
+        (t, m) => t + Math.abs(Number(m.amount || 0)),
+        0,
+      ),
     };
   }, [movements]);
 
@@ -263,7 +274,10 @@ export default function BankReconciliation({
             <tbody>
               {loading && (
                 <tr>
-                  <td colSpan={6} className="px-5 py-14 text-center text-[#637a8a]">
+                  <td
+                    colSpan={6}
+                    className="px-5 py-14 text-center text-[#637a8a]"
+                  >
                     Loading statement movements…
                   </td>
                 </tr>
@@ -271,15 +285,22 @@ export default function BankReconciliation({
 
               {!loading && error && (
                 <tr>
-                  <td colSpan={6} className="px-5 py-14 text-center text-[#b0243f]">
-                    Couldn’t load statement movements: {error}. Refresh the page to try again.
+                  <td
+                    colSpan={6}
+                    className="px-5 py-14 text-center text-[#b0243f]"
+                  >
+                    Couldn’t load statement movements: {error}. Refresh the page
+                    to try again.
                   </td>
                 </tr>
               )}
 
               {!loading && !error && visible.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-5 py-14 text-center text-[#637a8a]">
+                  <td
+                    colSpan={6}
+                    className="px-5 py-14 text-center text-[#637a8a]"
+                  >
                     {movements.length === 0
                       ? "No statement movements yet. Import a bank statement to start reconciling."
                       : "No movements match your search. Clear the search or choose another status."}
@@ -294,7 +315,9 @@ export default function BankReconciliation({
                   const action = renderAction(m);
                   return (
                     <tr
-                      key={m.id ?? `${m.date}-${m.description}-${pageStart + i}`}
+                      key={
+                        m.id ?? `${m.date}-${m.description}-${pageStart + i}`
+                      }
                       className={`transition-colors ${
                         matched
                           ? "bg-[#e9f4f9] hover:bg-[#e0eff6]"
@@ -304,15 +327,20 @@ export default function BankReconciliation({
                       <td className="whitespace-nowrap px-5 py-5 font-bold text-[#0693c7]">
                         {formatDate(m.date)}
                       </td>
-                      <td className="px-4 py-5 text-[#021820]">{m.description}</td>
+                      <td className="px-4 py-5 text-[#021820]">
+                        {m.description}
+                      </td>
                       <td className="whitespace-nowrap px-4 py-5 tabular-nums text-[#021820]">
                         {formatSigned(m.amount)}
                       </td>
-                      <td className="px-4 py-5 text-[#021820]">{m.journal || "—"}</td>
+                      <td className="px-4 py-5 text-[#021820]">
+                        {m.journal || "—"}
+                      </td>
                       <td className="px-4 py-5">
                         <span
                           className={`inline-block rounded-md px-3 py-1 text-xs font-medium ${
-                            STATUS_STYLES[m.status] || "bg-[#f3f6f8] text-[#637a8a]"
+                            STATUS_STYLES[m.status] ||
+                            "bg-[#f3f6f8] text-[#637a8a]"
                           }`}
                         >
                           {m.status}
