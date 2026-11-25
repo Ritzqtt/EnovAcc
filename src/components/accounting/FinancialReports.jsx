@@ -231,7 +231,7 @@ export default function FinancialReports({
   const head = { company: companyName, month };
 
   return (
-    <main className="flex flex-col gap-6 p-4 sm:p-8">
+    <main className="flex min-w-0 flex-col gap-6 p-4 sm:p-6 lg:p-8">
       <div className="flex flex-col gap-1">
         <p className="text-[10px] font-bold leading-4 text-[#0693c7]">
           FINANCE WORKSPACE / {month.toUpperCase()}
@@ -247,7 +247,7 @@ export default function FinancialReports({
       <div
         role="group"
         aria-label="Financial statement"
-        className="flex flex-wrap gap-2"
+        className="flex w-full items-center justify-center gap-2 sm:w-auto sm:flex-wrap sm:justify-start"
       >
         {TABS.map((t) => {
           const active = tab === t.id;
@@ -257,7 +257,7 @@ export default function FinancialReports({
               type="button"
               aria-pressed={active}
               onClick={() => setTab(t.id)}
-              className={`h-[42px] min-w-[175px] rounded-lg px-5 text-[13px] font-bold transition-colors ${FOCUS} ${
+              className={`h-[42px] min-w-0 flex-1 rounded-lg px-2 text-[13px] font-bold transition-colors sm:w-auto sm:flex-none sm:min-w-[175px] sm:px-5 ${FOCUS} ${
                 active
                   ? "bg-[#02355d] text-white"
                   : "bg-white text-[#637a8a] hover:bg-[#f3f6f8]"

@@ -2,7 +2,10 @@ import { useMemo, useState } from "react";
 import { Icon } from "../layout/AppShell";
 
 const now = new Date();
-const CURRENT_MONTH = now.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+const CURRENT_MONTH = now.toLocaleDateString("en-US", {
+  month: "long",
+  year: "numeric",
+});
 
 const CLASSES = ["Asset", "Liability", "Equity", "Revenue", "Expense"];
 
@@ -26,7 +29,10 @@ const CLASS_STYLES = {
   Expense: "bg-[#fbe8ec] text-[#b0243f]",
 };
 
-const peso = new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP" });
+const peso = new Intl.NumberFormat("en-PH", {
+  style: "currency",
+  currency: "PHP",
+});
 
 const PAGE_SIZE = 10;
 
@@ -38,7 +44,9 @@ function exportCsv(rows) {
   const lines = [
     ["Code", "Account name", "Class", "Balance"].map(esc).join(","),
     ...rows.map((r) =>
-      [r.code, r.name, r.class, Number(r.balance).toFixed(2)].map(esc).join(","),
+      [r.code, r.name, r.class, Number(r.balance).toFixed(2)]
+        .map(esc)
+        .join(","),
     ),
   ];
   const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8" });
@@ -52,7 +60,9 @@ function exportCsv(rows) {
 
 function Card({ className = "", children }) {
   return (
-    <div className={`rounded-xl border border-[#dce5ea] bg-white ${className}`}>{children}</div>
+    <div className={`rounded-xl border border-[#dce5ea] bg-white ${className}`}>
+      {children}
+    </div>
   );
 }
 
@@ -85,7 +95,9 @@ export default function ChartOfAccounts({
   const sorted = useMemo(
     () =>
       [...accounts].sort((a, b) =>
-        String(a.code).localeCompare(String(b.code), undefined, { numeric: true }),
+        String(a.code).localeCompare(String(b.code), undefined, {
+          numeric: true,
+        }),
       ),
     [accounts],
   );
@@ -123,7 +135,7 @@ export default function ChartOfAccounts({
   }, [accounts]);
 
   return (
-    <main className="flex flex-col gap-6 p-4 sm:p-8">
+    <main className="flex min-w-0 flex-col gap-6 p-4 sm:p-6 lg:p-8">
       <div className="flex flex-col gap-1">
         <p className="text-[10px] font-bold leading-4 text-[#0693c7]">
           FINANCE WORKSPACE / {month.toUpperCase()}
@@ -243,7 +255,10 @@ export default function ChartOfAccounts({
             <tbody>
               {loading && (
                 <tr>
-                  <td colSpan={5} className="px-5 py-14 text-center text-[#637a8a]">
+                  <td
+                    colSpan={5}
+                    className="px-5 py-14 text-center text-[#637a8a]"
+                  >
                     Loading accounts…
                   </td>
                 </tr>
@@ -251,15 +266,22 @@ export default function ChartOfAccounts({
 
               {!loading && error && (
                 <tr>
-                  <td colSpan={5} className="px-5 py-14 text-center text-[#b0243f]">
-                    Couldn’t load accounts: {error}. Refresh the page to try again.
+                  <td
+                    colSpan={5}
+                    className="px-5 py-14 text-center text-[#b0243f]"
+                  >
+                    Couldn’t load accounts: {error}. Refresh the page to try
+                    again.
                   </td>
                 </tr>
               )}
 
               {!loading && !error && visible.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-5 py-14 text-center text-[#637a8a]">
+                  <td
+                    colSpan={5}
+                    className="px-5 py-14 text-center text-[#637a8a]"
+                  >
                     {accounts.length === 0
                       ? "No accounts yet. Add your first account to start posting entries."
                       : "No accounts match your search. Clear the search or choose another class."}
@@ -277,13 +299,16 @@ export default function ChartOfAccounts({
                       key={a.code}
                       className="border-t border-[#dce5ea] transition-colors hover:bg-[#f3f8fb]"
                     >
-                      <td className="px-5 py-4 font-bold text-[#0693c7]">{a.code}</td>
+                      <td className="px-5 py-4 font-bold text-[#0693c7]">
+                        {a.code}
+                      </td>
                       <td className="px-4 py-4 text-[#021820]">{a.name}</td>
                       <td className="px-4 py-4">
                         <span className="inline-flex items-center gap-2">
                           <span
                             className={`rounded-full px-2.5 py-1 text-xs font-bold ${
-                              CLASS_STYLES[a.class] || "bg-[#f3f6f8] text-[#637a8a]"
+                              CLASS_STYLES[a.class] ||
+                              "bg-[#f3f6f8] text-[#637a8a]"
                             }`}
                           >
                             {a.class}

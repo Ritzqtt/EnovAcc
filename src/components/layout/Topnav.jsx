@@ -87,11 +87,15 @@ export default function Topnav({
   onMarkAllRead,
   onViewAllNotifications,
   onNotificationClick,
+  onOpenNavigation,
 }) {
-  const [selectedMonth, setSelectedMonth] = useState(month || currentMonthLabel());
+  const [selectedMonth, setSelectedMonth] = useState(
+    month || currentMonthLabel(),
+  );
   const [openMenu, setOpenMenu] = useState(null);
 
-  const toggleMenu = (name) => setOpenMenu((current) => (current === name ? null : name));
+  const toggleMenu = (name) =>
+    setOpenMenu((current) => (current === name ? null : name));
   const closeMenu = () => setOpenMenu(null);
 
   const unreadCount = notifications.filter((n) => n.unread).length;
@@ -130,12 +134,36 @@ export default function Topnav({
   };
 
   return (
-    <header className="sticky top-0 z-20 flex items-center justify-between gap-4 bg-white p-6 shadow-[0_4px_16px_rgba(2,24,32,0.06)]">
+    <header className="sticky top-0 z-20 flex min-h-[72px] items-center justify-between gap-2 bg-white px-3 py-3 shadow-[0_4px_16px_rgba(2,24,32,0.06)] sm:gap-4 sm:px-6 sm:py-4">
       {openMenu && (
-        <div className="fixed inset-0 z-10" onClick={closeMenu} aria-hidden="true" />
+        <div
+          className="fixed inset-0 z-10"
+          onClick={closeMenu}
+          aria-hidden="true"
+        />
       )}
 
-      <p className="whitespace-pre text-xs leading-[18px] text-[#637a8a]">
+      <button
+        type="button"
+        aria-label="Open navigation"
+        onClick={onOpenNavigation}
+        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-[#021820] hover:bg-[#f1f8fd] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#0693c7] lg:hidden"
+      >
+        <svg
+          width="22"
+          height="22"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          aria-hidden="true"
+        >
+          <path d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+
+      <p className="hidden min-w-0 flex-1 truncate text-xs leading-[18px] text-[#637a8a] sm:block">
         EnovAcc{"  /  "}
         {active}
       </p>
@@ -150,7 +178,9 @@ export default function Topnav({
             aria-expanded={openMenu === "month"}
             className="relative z-20 flex items-center gap-1 text-[13px] font-bold leading-5 text-[#021820] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0693c7]"
           >
-            {selectedMonth}
+            <span className="max-w-[92px] truncate sm:max-w-none">
+              {selectedMonth}
+            </span>
             <TopIcon
               name="chevron"
               className={`h-4 w-4 transition-transform ${openMenu === "month" ? "rotate-180" : ""}`}
@@ -250,7 +280,9 @@ export default function Topnav({
                 {firstName}
               </span>
               {userRole && (
-                <span className="block text-xs leading-[18px] text-[#637a8a]">{userRole}</span>
+                <span className="block text-xs leading-[18px] text-[#637a8a]">
+                  {userRole}
+                </span>
               )}
             </span>
 
@@ -279,7 +311,10 @@ export default function Topnav({
                 )}
               </div>
 
-              <div role="separator" className="mx-1.5 mb-1.5 h-px bg-[#e6edf1]" />
+              <div
+                role="separator"
+                className="mx-1.5 mb-1.5 h-px bg-[#e6edf1]"
+              />
 
               <button
                 type="button"
@@ -287,7 +322,10 @@ export default function Topnav({
                 onClick={() => goTo("Account Settings")}
                 className={`${MENU_ITEM_CLASS} text-[#021820] hover:bg-[#f1f8fd]`}
               >
-                <TopIcon name="user" className="h-[18px] w-[18px] text-[#637a8a]" />
+                <TopIcon
+                  name="user"
+                  className="h-[18px] w-[18px] text-[#637a8a]"
+                />
                 Account Settings
               </button>
 
@@ -297,11 +335,17 @@ export default function Topnav({
                 onClick={() => goTo("Change Password")}
                 className={`${MENU_ITEM_CLASS} text-[#021820] hover:bg-[#f1f8fd]`}
               >
-                <TopIcon name="lock" className="h-[18px] w-[18px] text-[#637a8a]" />
+                <TopIcon
+                  name="lock"
+                  className="h-[18px] w-[18px] text-[#637a8a]"
+                />
                 Change Password
               </button>
 
-              <div role="separator" className="mx-1.5 my-1.5 h-px bg-[#e6edf1]" />
+              <div
+                role="separator"
+                className="mx-1.5 my-1.5 h-px bg-[#e6edf1]"
+              />
 
               <button
                 type="button"

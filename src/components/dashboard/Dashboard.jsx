@@ -107,7 +107,7 @@ function CashCard({ cash }) {
   const max = Math.max(...cash.trend, 1) * 1.1;
   const d = linePath(cash.trend, 760, 4, 50, max);
   return (
-    <div className="flex flex-col gap-3 rounded-xl bg-gradient-to-r from-[#02355d] to-[#046fc3] p-8 text-white">
+    <div className="flex flex-col gap-3 rounded-xl bg-gradient-to-r from-[#02355d] to-[#046fc3] p-5 text-white sm:p-8">
       <p className="whitespace-pre text-[10px] font-bold leading-4 text-[#a7bfce]">
         AVAILABLE CASH{"  /  "}OPERATING ACCOUNT
       </p>
@@ -280,7 +280,7 @@ export default function Dashboard({ data = EMPTY_DATA }) {
   const expensePct = revenue > 0 ? Math.round((expenses / revenue) * 100) : 0;
 
   return (
-    <main className="flex flex-col gap-6 p-4 sm:p-8">
+    <main className="flex min-w-0 flex-col gap-6 p-4 sm:p-6 lg:p-8">
       {}
       <div className="flex flex-wrap items-center justify-between gap-5">
         <div className="flex flex-col gap-1">
@@ -314,7 +314,7 @@ export default function Dashboard({ data = EMPTY_DATA }) {
       </div>
 
       {}
-      <Card className="grid grid-cols-2 gap-6 p-5 lg:grid-cols-4">
+      <Card className="grid grid-cols-1 gap-6 p-5 min-[420px]:grid-cols-2 lg:grid-cols-4">
         <SummaryItem
           label="NET INCOME"
           value={netIncome}

@@ -92,9 +92,15 @@ function NotificationItem({ item, onClick }) {
       </span>
 
       <span className="min-w-0 flex-1">
-        <span className="block text-sm font-bold leading-5 text-[#021820]">{item.title}</span>
-        <span className="mt-0.5 block text-[13px] leading-5 text-[#637a8a]">{item.message}</span>
-        <span className="mt-1 block text-xs leading-4 text-[#9aaab5]">{item.time}</span>
+        <span className="block text-sm font-bold leading-5 text-[#021820]">
+          {item.title}
+        </span>
+        <span className="mt-0.5 block text-[13px] leading-5 text-[#637a8a]">
+          {item.message}
+        </span>
+        <span className="mt-1 block text-xs leading-4 text-[#9aaab5]">
+          {item.time}
+        </span>
       </span>
 
       {item.unread && (
@@ -119,7 +125,10 @@ export default function NotificationPanel({
 
   const tabs = [
     { id: "all", label: "All" },
-    { id: "unread", label: unreadCount > 0 ? `Unread ${unreadCount}` : "Unread" },
+    {
+      id: "unread",
+      label: unreadCount > 0 ? `Unread ${unreadCount}` : "Unread",
+    },
     { id: "approvals", label: "Approvals" },
   ];
 
@@ -140,11 +149,13 @@ export default function NotificationPanel({
     <div
       role="dialog"
       aria-label="Notifications"
-      className="absolute right-0 top-full z-30 mt-3 w-[420px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-[#dce5ea] bg-white shadow-xl"
+      className="absolute right-[-52px] top-full z-30 mt-3 w-[calc(100vw-1.5rem)] max-w-[420px] overflow-hidden rounded-xl border border-[#dce5ea] bg-white shadow-xl sm:right-0"
     >
       <div className="flex items-center justify-between gap-3 px-5 pb-3 pt-5">
         <div className="flex items-center gap-3">
-          <h2 className="text-[17px] font-bold leading-6 text-[#021820]">Notifications</h2>
+          <h2 className="text-[17px] font-bold leading-6 text-[#021820]">
+            Notifications
+          </h2>
           {unreadCount > 0 && (
             <span className="rounded-full bg-[#e1f2fb] px-2.5 py-0.5 text-xs font-bold text-[#0693c7]">
               {unreadCount} new
@@ -161,7 +172,11 @@ export default function NotificationPanel({
         </button>
       </div>
 
-      <div role="tablist" aria-label="Filter notifications" className="flex gap-6 border-b border-[#e6edf1] px-5">
+      <div
+        role="tablist"
+        aria-label="Filter notifications"
+        className="flex gap-6 border-b border-[#e6edf1] px-5"
+      >
         {tabs.map((t) => {
           const selected = t.id === tab;
           return (
@@ -194,7 +209,9 @@ export default function NotificationPanel({
               <PanelIcon name="bell" />
             </span>
             <p className="text-sm font-bold text-[#021820]">{emptyText}</p>
-            <p className="text-xs text-[#637a8a]">New updates will show up here.</p>
+            <p className="text-xs text-[#637a8a]">
+              New updates will show up here.
+            </p>
           </div>
         )}
       </div>

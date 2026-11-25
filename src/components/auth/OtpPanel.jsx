@@ -42,8 +42,27 @@ export default function OtpPanel({
     return () => clearTimeout(id);
   }, [cooldown]);
 
+  async function submit(value) {
+    if (submitting.current) return;
+    submitting.current = true;
+    setVerifying(true);
+    setError("");
+    setNotice("");
+    try {
+      await onVerify(value);
+    } catch (err) {
+      setError(err?.message || "Incorrect code. Try again.");
+      setDigits(EMPTY);
+      setVerifying(false);
+      submitting.current = false;
+      setTimeout(() => focusBox(0), 0);
+    }
+  }
+
   useEffect(() => {
-    if (code.length === LENGTH) submit(code);
+    if (code.length !== LENGTH) return undefined;
+    const id = setTimeout(() => submit(code), 0);
+    return () => clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [code]);
 
@@ -97,23 +116,6 @@ export default function OtpPanel({
     } else if (e.key === "ArrowRight") {
       e.preventDefault();
       focusBox(i + 1);
-    }
-  }
-
-  async function submit(value) {
-    if (submitting.current) return;
-    submitting.current = true;
-    setVerifying(true);
-    setError("");
-    setNotice("");
-    try {
-      await onVerify(value);
-    } catch (err) {
-      setError(err?.message || "Incorrect code. Try again.");
-      setDigits(EMPTY);
-      setVerifying(false);
-      submitting.current = false;
-      setTimeout(() => focusBox(0), 0);
     }
   }
 

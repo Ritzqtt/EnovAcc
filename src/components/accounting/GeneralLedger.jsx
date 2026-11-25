@@ -2,7 +2,10 @@ import { useMemo, useState } from "react";
 import { Icon } from "../layout/AppShell";
 
 const now = new Date();
-const CURRENT_MONTH = now.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+const CURRENT_MONTH = now.toLocaleDateString("en-US", {
+  month: "long",
+  year: "numeric",
+});
 
 const FILTERS = [
   { value: "debit", label: "Debits" },
@@ -11,7 +14,10 @@ const FILTERS = [
 
 const PAGE_SIZE = 10;
 
-const peso = new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP" });
+const peso = new Intl.NumberFormat("en-PH", {
+  style: "currency",
+  currency: "PHP",
+});
 
 const FOCUS =
   "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#02355d]";
@@ -32,7 +38,9 @@ function amount(value) {
 function exportCsv(rows, account) {
   const esc = (v) => `"${String(v).replace(/"/g, '""')}"`;
   const lines = [
-    ["Date", "Reference", "Description", "Debit", "Credit", "Balance"].map(esc).join(","),
+    ["Date", "Reference", "Description", "Debit", "Credit", "Balance"]
+      .map(esc)
+      .join(","),
     ...rows.map((r) =>
       [
         formatDate(r.date),
@@ -57,7 +65,9 @@ function exportCsv(rows, account) {
 
 function Card({ className = "", children }) {
   return (
-    <div className={`rounded-xl border border-[#dce5ea] bg-white ${className}`}>{children}</div>
+    <div className={`rounded-xl border border-[#dce5ea] bg-white ${className}`}>
+      {children}
+    </div>
   );
 }
 
@@ -98,7 +108,7 @@ export default function GeneralLedger({
       : "No movements match your search. Clear the search or choose another filter.";
 
   return (
-    <main className="flex flex-col gap-6 p-4 sm:p-8">
+    <main className="flex min-w-0 flex-col gap-6 p-4 sm:p-6 lg:p-8">
       <div className="flex flex-col gap-1">
         <p className="text-[10px] font-bold leading-4 text-[#0693c7]">
           FINANCE WORKSPACE / {month.toUpperCase()}
@@ -113,7 +123,9 @@ export default function GeneralLedger({
 
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl bg-gradient-to-r from-[#02355d] to-[#046fc3] px-6 py-5 text-white">
         <p className="text-2xl font-bold leading-8">
-          {account ? `${account.code} / ${account.name}` : "No account selected"}
+          {account
+            ? `${account.code} / ${account.name}`
+            : "No account selected"}
         </p>
         <p className="text-[10px] font-bold uppercase leading-4 text-[#a7bfce]">
           Closing balance
@@ -195,7 +207,10 @@ export default function GeneralLedger({
             <tbody>
               {loading && (
                 <tr>
-                  <td colSpan={6} className="px-5 py-14 text-center text-[#637a8a]">
+                  <td
+                    colSpan={6}
+                    className="px-5 py-14 text-center text-[#637a8a]"
+                  >
                     Loading movements…
                   </td>
                 </tr>
@@ -203,15 +218,22 @@ export default function GeneralLedger({
 
               {!loading && error && (
                 <tr>
-                  <td colSpan={6} className="px-5 py-14 text-center text-[#b0243f]">
-                    Couldn’t load movements: {error}. Refresh the page to try again.
+                  <td
+                    colSpan={6}
+                    className="px-5 py-14 text-center text-[#b0243f]"
+                  >
+                    Couldn’t load movements: {error}. Refresh the page to try
+                    again.
                   </td>
                 </tr>
               )}
 
               {!loading && !error && visible.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-5 py-14 text-center text-[#637a8a]">
+                  <td
+                    colSpan={6}
+                    className="px-5 py-14 text-center text-[#637a8a]"
+                  >
                     {emptyMessage}
                   </td>
                 </tr>
@@ -228,9 +250,15 @@ export default function GeneralLedger({
                       {formatDate(m.date)}
                     </td>
                     <td className="px-4 py-4 text-[#021820]">{m.reference}</td>
-                    <td className="px-4 py-4 text-[#021820]">{m.description}</td>
-                    <td className="px-4 py-4 tabular-nums text-[#021820]">{amount(m.debit)}</td>
-                    <td className="px-4 py-4 tabular-nums text-[#021820]">{amount(m.credit)}</td>
+                    <td className="px-4 py-4 text-[#021820]">
+                      {m.description}
+                    </td>
+                    <td className="px-4 py-4 tabular-nums text-[#021820]">
+                      {amount(m.debit)}
+                    </td>
+                    <td className="px-4 py-4 tabular-nums text-[#021820]">
+                      {amount(m.credit)}
+                    </td>
                     <td className="px-4 py-4 tabular-nums text-[#021820]">
                       {peso.format(Number(m.balance || 0))}
                     </td>

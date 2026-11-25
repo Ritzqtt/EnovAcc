@@ -145,7 +145,7 @@ export default function LoginFormPanel({
               </p>
               <h2
                 id="login-heading"
-                className="auth-form-item whitespace-nowrap text-[clamp(28px,4.4vw,42px)] font-bold leading-[1.1] text-[#021820]"
+                className="auth-form-item text-[clamp(28px,8vw,42px)] font-bold leading-[1.1] text-[#021820] sm:whitespace-nowrap"
                 style={{ "--stagger": 2 }}
               >
                 Your workspace awaits.

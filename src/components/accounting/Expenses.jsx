@@ -1,7 +1,10 @@
 import { useMemo, useState } from "react";
 import { Icon } from "../layout/AppShell";
 
-const CURRENT_MONTH = new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" });
+const CURRENT_MONTH = new Date().toLocaleDateString("en-US", {
+  month: "long",
+  year: "numeric",
+});
 
 const STATUSES = ["Posted", "Pending"];
 
@@ -12,7 +15,10 @@ const STATUS_STYLES = {
 
 const PAGE_SIZE = 10;
 
-const peso = new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP" });
+const peso = new Intl.NumberFormat("en-PH", {
+  style: "currency",
+  currency: "PHP",
+});
 
 const FOCUS =
   "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#02355d]";
@@ -24,7 +30,9 @@ const plural = (count, word) => `${count} ${word}${count === 1 ? "" : "s"}`;
 function parseDate(value) {
   if (value instanceof Date) return value;
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value ?? ""));
-  return m ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])) : new Date(value);
+  return m
+    ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]))
+    : new Date(value);
 }
 
 function formatDate(value) {
@@ -36,7 +44,9 @@ function formatDate(value) {
 function exportCsv(rows) {
   const esc = (v) => `"${String(v).replace(/"/g, '""')}"`;
   const lines = [
-    ["Reference", "Payee / Description", "Date", "Amount", "Status"].map(esc).join(","),
+    ["Reference", "Payee / Description", "Date", "Amount", "Status"]
+      .map(esc)
+      .join(","),
     ...rows.map((r) =>
       [
         r.reference,
@@ -60,7 +70,9 @@ function exportCsv(rows) {
 
 function Card({ className = "", children }) {
   return (
-    <div className={`rounded-xl border border-[#dce5ea] bg-white ${className}`}>{children}</div>
+    <div className={`rounded-xl border border-[#dce5ea] bg-white ${className}`}>
+      {children}
+    </div>
   );
 }
 
@@ -94,9 +106,13 @@ export default function Expenses({
       [...expenses].sort((a, b) => {
         const byDate = parseDate(b.date) - parseDate(a.date);
         if (byDate) return byDate;
-        return String(b.reference).localeCompare(String(a.reference), undefined, {
-          numeric: true,
-        });
+        return String(b.reference).localeCompare(
+          String(a.reference),
+          undefined,
+          {
+            numeric: true,
+          },
+        );
       }),
     [expenses],
   );
@@ -109,7 +125,9 @@ export default function Expenses({
       return (
         String(e.reference).toLowerCase().includes(q) ||
         String(e.payee).toLowerCase().includes(q) ||
-        String(e.description ?? "").toLowerCase().includes(q)
+        String(e.description ?? "")
+          .toLowerCase()
+          .includes(q)
       );
     });
   }, [sorted, query, statusFilter]);
@@ -132,7 +150,7 @@ export default function Expenses({
   }, [expenses]);
 
   return (
-    <main className="flex flex-col gap-6 p-4 sm:p-8">
+    <main className="flex min-w-0 flex-col gap-6 p-4 sm:p-6 lg:p-8">
       <div className="flex flex-col gap-1">
         <p className="text-[10px] font-bold leading-4 text-[#0693c7]">
           FINANCE WORKSPACE / {month.toUpperCase()}
@@ -243,7 +261,10 @@ export default function Expenses({
             <tbody>
               {loading && (
                 <tr>
-                  <td colSpan={6} className="px-5 py-14 text-center text-[#637a8a]">
+                  <td
+                    colSpan={6}
+                    className="px-5 py-14 text-center text-[#637a8a]"
+                  >
                     Loading expenses…
                   </td>
                 </tr>
@@ -251,15 +272,22 @@ export default function Expenses({
 
               {!loading && error && (
                 <tr>
-                  <td colSpan={6} className="px-5 py-14 text-center text-[#b0243f]">
-                    Couldn’t load expenses: {error}. Refresh the page to try again.
+                  <td
+                    colSpan={6}
+                    className="px-5 py-14 text-center text-[#b0243f]"
+                  >
+                    Couldn’t load expenses: {error}. Refresh the page to try
+                    again.
                   </td>
                 </tr>
               )}
 
               {!loading && !error && visible.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-5 py-14 text-center text-[#637a8a]">
+                  <td
+                    colSpan={6}
+                    className="px-5 py-14 text-center text-[#637a8a]"
+                  >
                     {expenses.length === 0
                       ? "No expenses yet. Expenses you capture will appear here with their approval status."
                       : "No expenses match your search. Clear the search or choose another status."}
@@ -276,9 +304,13 @@ export default function Expenses({
                       key={e.reference}
                       className="border-t border-[#dce5ea] transition-colors hover:bg-[#f3f8fb]"
                     >
-                      <td className="px-5 py-4 font-bold text-[#0693c7]">{e.reference}</td>
+                      <td className="px-5 py-4 font-bold text-[#0693c7]">
+                        {e.reference}
+                      </td>
                       <td className="px-4 py-4 text-[#021820]">
-                        {e.description ? `${e.payee} · ${e.description}` : e.payee}
+                        {e.description
+                          ? `${e.payee} · ${e.description}`
+                          : e.payee}
                       </td>
                       <td className="whitespace-nowrap px-4 py-4 text-[#021820]">
                         {formatDate(e.date)}
@@ -289,7 +321,8 @@ export default function Expenses({
                       <td className="px-4 py-4">
                         <span
                           className={`inline-block rounded-md px-3 py-1 text-xs font-medium ${
-                            STATUS_STYLES[e.status] || "bg-[#f3f6f8] text-[#637a8a]"
+                            STATUS_STYLES[e.status] ||
+                            "bg-[#f3f6f8] text-[#637a8a]"
                           }`}
                         >
                           {e.status}
@@ -298,7 +331,9 @@ export default function Expenses({
                       <td className="whitespace-nowrap px-4 py-4">
                         <button
                           type="button"
-                          onClick={() => (pending ? onReviewExpense?.(e) : onViewExpense?.(e))}
+                          onClick={() =>
+                            pending ? onReviewExpense?.(e) : onViewExpense?.(e)
+                          }
                           className={`rounded font-medium text-[#0693c7] hover:underline ${FOCUS}`}
                         >
                           {pending ? "Review expense →" : "View entry →"}

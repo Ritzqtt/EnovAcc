@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import Sidenav from "./Sidenav";
 import Topnav from "./Topnav";
 
@@ -136,9 +137,41 @@ export default function AppShell({
   onNotificationClick,
   children,
 }) {
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
+  useEffect(() => {
+    if (!mobileNavOpen) return undefined;
+    const onKey = (event) => {
+      if (event.key === "Escape") setMobileNavOpen(false);
+    };
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [mobileNavOpen]);
+
   return (
     <div className="flex min-h-screen bg-[#f3f6f8] font-['Inter',system-ui,sans-serif] text-[#021820]">
-      <Sidenav active={active} onNavigate={onNavigate} role={user?.role} />
+      {mobileNavOpen && (
+        <button
+          type="button"
+          aria-label="Close navigation"
+          onClick={() => setMobileNavOpen(false)}
+          className="fixed inset-0 z-40 bg-[#021820]/40 lg:hidden"
+        />
+      )}
+      <Sidenav
+        active={active}
+        onNavigate={(label) => {
+          setMobileNavOpen(false);
+          onNavigate?.(label);
+        }}
+        role={user?.role}
+        open={mobileNavOpen}
+        onClose={() => setMobileNavOpen(false)}
+      />
       <div className="flex min-w-0 flex-1 flex-col">
         <Topnav
           active={active}
@@ -151,6 +184,7 @@ export default function AppShell({
           onMarkAllRead={onMarkAllRead}
           onViewAllNotifications={onViewAllNotifications}
           onNotificationClick={onNotificationClick}
+          onOpenNavigation={() => setMobileNavOpen(true)}
         />
         {children}
       </div>

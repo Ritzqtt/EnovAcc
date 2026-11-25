@@ -31,7 +31,9 @@ const HIDDEN_ITEMS_BY_ROLE = {
   "finance manager": ["Users & roles"],
 };
 
-const ALL_RESTRICTED_ITEMS = new Set(Object.values(HIDDEN_ITEMS_BY_ROLE).flat());
+const ALL_RESTRICTED_ITEMS = new Set(
+  Object.values(HIDDEN_ITEMS_BY_ROLE).flat(),
+);
 
 function getHiddenItems(role) {
   const key = (role || "").toLowerCase().replace(/[_-]+/g, " ").trim();
@@ -166,7 +168,13 @@ function NavItem({ label, icon, active, onClick }) {
   );
 }
 
-export default function Sidenav({ active, onNavigate, role }) {
+export default function Sidenav({
+  active,
+  onNavigate,
+  role,
+  open = false,
+  onClose,
+}) {
   const hiddenItems = getHiddenItems(role);
   const sections = SECTIONS.map((section) => ({
     ...section,
@@ -174,7 +182,27 @@ export default function Sidenav({ active, onNavigate, role }) {
   })).filter((section) => section.items.length > 0);
 
   return (
-    <aside className="relative hidden h-screen w-[228px] shrink-0 flex-col overflow-hidden bg-[linear-gradient(180deg,rgb(67,195,237)_0%,rgb(50,173,229)_5.2885%,rgb(4,97,169)_27.404%,rgb(3,82,144)_46.635%,rgb(2,53,93)_89.423%)] lg:sticky lg:top-0 lg:flex">
+    <aside
+      className={`fixed inset-y-0 left-0 z-50 flex h-[100dvh] w-[228px] shrink-0 flex-col overflow-hidden bg-[linear-gradient(180deg,rgb(67,195,237)_0%,rgb(50,173,229)_5.2885%,rgb(4,97,169)_27.404%,rgb(3,82,144)_46.635%,rgb(2,53,93)_89.423%)] transition-transform duration-200 lg:sticky lg:top-0 lg:z-auto lg:h-screen lg:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}
+    >
+      <button
+        type="button"
+        aria-label="Close navigation"
+        onClick={onClose}
+        className="absolute right-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full text-white hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white lg:hidden"
+      >
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          aria-hidden="true"
+        >
+          <path d="M18 6 6 18M6 6l12 12" />
+        </svg>
+      </button>
       <img
         src={logo}
         alt=""
@@ -220,8 +248,12 @@ export default function Sidenav({ active, onNavigate, role }) {
 
       <div className="relative flex shrink-0 flex-col gap-2 px-8 pb-8 pt-4">
         <p className="text-[10px] font-bold leading-4 text-white">ENOV8TIVE</p>
-        <p className="text-[13px] font-bold leading-5 text-white">Philippine Entity</p>
-        <p className="text-xs leading-[18px] text-[#a7bfce]">Financial Management System</p>
+        <p className="text-[13px] font-bold leading-5 text-white">
+          Philippine Entity
+        </p>
+        <p className="text-xs leading-[18px] text-[#a7bfce]">
+          Financial Management System
+        </p>
       </div>
     </aside>
   );

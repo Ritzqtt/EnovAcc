@@ -28,7 +28,16 @@ function EyeIcon({ off }) {
   );
 }
 
-function PasswordField({ id, label, value, onChange, autoComplete, error, show, onToggle }) {
+function PasswordField({
+  id,
+  label,
+  value,
+  onChange,
+  autoComplete,
+  error,
+  show,
+  onToggle,
+}) {
   return (
     <div className="flex flex-col gap-1.5">
       <label htmlFor={id} className="text-xs font-bold text-[#021820]">
@@ -68,7 +77,9 @@ function PasswordField({ id, label, value, onChange, autoComplete, error, show, 
 
 function Rule({ met, children }) {
   return (
-    <li className={`flex items-center gap-2 text-xs ${met ? "text-[#14683a]" : "text-[#637a8a]"}`}>
+    <li
+      className={`flex items-center gap-2 text-xs ${met ? "text-[#14683a]" : "text-[#637a8a]"}`}
+    >
       <svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 24 24"
@@ -80,7 +91,11 @@ function Rule({ met, children }) {
         className="h-4 w-4 shrink-0"
         aria-hidden="true"
       >
-        {met ? <path d="m5 12.5 4.5 4.5L19 7.5" /> : <circle cx="12" cy="12" r="4" />}
+        {met ? (
+          <path d="m5 12.5 4.5 4.5L19 7.5" />
+        ) : (
+          <circle cx="12" cy="12" r="4" />
+        )}
       </svg>
       {children}
       <span className="sr-only">{met ? " (done)" : " (not yet)"}</span>
@@ -98,7 +113,10 @@ export default function ChangePassword({ currentUser }) {
   const [saving, setSaving] = useState(false);
 
   const rules = [
-    { label: `At least ${MIN_LENGTH} characters`, met: next.length >= MIN_LENGTH },
+    {
+      label: `At least ${MIN_LENGTH} characters`,
+      met: next.length >= MIN_LENGTH,
+    },
     { label: "One uppercase letter", met: /[A-Z]/.test(next) },
     { label: "One lowercase letter", met: /[a-z]/.test(next) },
     { label: "One number", met: /\d/.test(next) },
@@ -107,7 +125,10 @@ export default function ChangePassword({ currentUser }) {
       label: "Different from your current password",
       met: next.length > 0 && current.length > 0 && next !== current,
     },
-    { label: "Matches the confirmation", met: confirm.length > 0 && next === confirm },
+    {
+      label: "Matches the confirmation",
+      met: confirm.length > 0 && next === confirm,
+    },
   ];
   const canSubmit = current.length > 0 && rules.every((r) => r.met) && !saving;
 
@@ -116,7 +137,10 @@ export default function ChangePassword({ currentUser }) {
     if (!canSubmit) return;
 
     if (!currentUser?.email) {
-      setStatus({ type: "error", text: "We couldn't find your account. Sign in again." });
+      setStatus({
+        type: "error",
+        text: "We couldn't find your account. Sign in again.",
+      });
       return;
     }
 
@@ -131,16 +155,23 @@ export default function ChangePassword({ currentUser }) {
       });
 
       if (verifyError) {
-        const wrong = verifyError.message?.toLowerCase().includes("invalid login credentials");
+        const wrong = verifyError.message
+          ?.toLowerCase()
+          .includes("invalid login credentials");
         if (wrong) {
           setErrors({ current: "Your current password is incorrect." });
         } else {
-          setStatus({ type: "error", text: "We couldn't verify your password. Try again." });
+          setStatus({
+            type: "error",
+            text: "We couldn't verify your password. Try again.",
+          });
         }
         return;
       }
 
-      const { error: updateError } = await supabase.auth.updateUser({ password: next });
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: next,
+      });
       if (updateError) {
         setStatus({ type: "error", text: updateError.message });
         return;
@@ -159,9 +190,11 @@ export default function ChangePassword({ currentUser }) {
   };
 
   return (
-    <main className="flex flex-col gap-6 p-4 sm:p-8">
+    <main className="flex min-w-0 flex-col gap-6 p-4 sm:p-6 lg:p-8">
       <div className="flex flex-col gap-1">
-        <h1 className="text-[32px] font-bold leading-10 text-[#021820]">Change Password</h1>
+        <h1 className="text-[32px] font-bold leading-10 text-[#021820]">
+          Change Password
+        </h1>
         <p className="text-xs leading-[18px] text-[#637a8a]">
           Enter your current password, then choose a new one.
         </p>
@@ -202,7 +235,10 @@ export default function ChangePassword({ currentUser }) {
             onToggle={() => setShow((s) => !s)}
           />
 
-          <ul className="flex flex-col gap-1.5" aria-label="Password requirements">
+          <ul
+            className="flex flex-col gap-1.5"
+            aria-label="Password requirements"
+          >
             {rules.map((rule) => (
               <Rule key={rule.label} met={rule.met}>
                 {rule.label}

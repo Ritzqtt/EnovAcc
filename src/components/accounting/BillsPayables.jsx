@@ -1,7 +1,10 @@
 import { useMemo, useState } from "react";
 import { Icon } from "../layout/AppShell";
 
-const CURRENT_MONTH = new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" });
+const CURRENT_MONTH = new Date().toLocaleDateString("en-US", {
+  month: "long",
+  year: "numeric",
+});
 
 const STATUSES = ["Outstanding", "Paid"];
 
@@ -12,7 +15,10 @@ const STATUS_STYLES = {
 
 const PAGE_SIZE = 10;
 
-const peso = new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP" });
+const peso = new Intl.NumberFormat("en-PH", {
+  style: "currency",
+  currency: "PHP",
+});
 
 const FOCUS =
   "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#02355d]";
@@ -24,7 +30,9 @@ const plural = (count, word) => `${count} ${word}${count === 1 ? "" : "s"}`;
 function parseDate(value) {
   if (value instanceof Date) return value;
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value ?? ""));
-  return m ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])) : new Date(value);
+  return m
+    ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]))
+    : new Date(value);
 }
 
 function formatDate(value) {
@@ -41,13 +49,17 @@ function formatDayMonth(value) {
 
 function inMonth(value, ref) {
   const d = parseDate(value);
-  return d.getFullYear() === ref.getFullYear() && d.getMonth() === ref.getMonth();
+  return (
+    d.getFullYear() === ref.getFullYear() && d.getMonth() === ref.getMonth()
+  );
 }
 
 function exportCsv(rows) {
   const esc = (v) => `"${String(v).replace(/"/g, '""')}"`;
   const lines = [
-    ["Reference", "Supplier / Description", "Due date", "Amount", "Status"].map(esc).join(","),
+    ["Reference", "Supplier / Description", "Due date", "Amount", "Status"]
+      .map(esc)
+      .join(","),
     ...rows.map((r) =>
       [
         r.reference,
@@ -71,7 +83,9 @@ function exportCsv(rows) {
 
 function Card({ className = "", children }) {
   return (
-    <div className={`rounded-xl border border-[#dce5ea] bg-white ${className}`}>{children}</div>
+    <div className={`rounded-xl border border-[#dce5ea] bg-white ${className}`}>
+      {children}
+    </div>
   );
 }
 
@@ -107,7 +121,9 @@ export default function BillsPayables({
       return (
         String(b.reference).toLowerCase().includes(q) ||
         String(b.supplier).toLowerCase().includes(q) ||
-        String(b.description ?? "").toLowerCase().includes(q)
+        String(b.description ?? "")
+          .toLowerCase()
+          .includes(q)
       );
     });
   }, [bills, query, statusFilter]);
@@ -125,9 +141,18 @@ export default function BillsPayables({
     const paidThisMonth = bills.filter(
       (b) => b.status === "Paid" && inMonth(b.paidDate ?? b.dueDate, today),
     );
-    const upcoming = [...dueThisMonth].sort((a, b) => parseDate(a.dueDate) - parseDate(b.dueDate));
-    const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    const next = upcoming.find((b) => parseDate(b.dueDate) >= startOfToday) ?? upcoming[0] ?? null;
+    const upcoming = [...dueThisMonth].sort(
+      (a, b) => parseDate(a.dueDate) - parseDate(b.dueDate),
+    );
+    const startOfToday = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate(),
+    );
+    const next =
+      upcoming.find((b) => parseDate(b.dueDate) >= startOfToday) ??
+      upcoming[0] ??
+      null;
 
     return {
       openCount: open.length,
@@ -140,7 +165,7 @@ export default function BillsPayables({
   }, [bills]);
 
   return (
-    <main className="flex flex-col gap-6 p-4 sm:p-8">
+    <main className="flex min-w-0 flex-col gap-6 p-4 sm:p-6 lg:p-8">
       <div className="flex flex-col gap-1">
         <p className="text-[10px] font-bold leading-4 text-[#0693c7]">
           FINANCE WORKSPACE / {month.toUpperCase()}
@@ -185,7 +210,9 @@ export default function BillsPayables({
 
       <Card className="overflow-hidden">
         <div className="flex flex-wrap items-center gap-3 p-5">
-          <h2 className="mr-2 text-[19px] font-bold leading-7 text-[#021820]">Supplier bills</h2>
+          <h2 className="mr-2 text-[19px] font-bold leading-7 text-[#021820]">
+            Supplier bills
+          </h2>
 
           <label className="relative min-w-[220px] flex-1 sm:max-w-[360px]">
             <span className="sr-only">Search bills</span>
@@ -253,7 +280,10 @@ export default function BillsPayables({
             <tbody>
               {loading && (
                 <tr>
-                  <td colSpan={6} className="px-5 py-14 text-center text-[#637a8a]">
+                  <td
+                    colSpan={6}
+                    className="px-5 py-14 text-center text-[#637a8a]"
+                  >
                     Loading bills…
                   </td>
                 </tr>
@@ -261,7 +291,10 @@ export default function BillsPayables({
 
               {!loading && error && (
                 <tr>
-                  <td colSpan={6} className="px-5 py-14 text-center text-[#b0243f]">
+                  <td
+                    colSpan={6}
+                    className="px-5 py-14 text-center text-[#b0243f]"
+                  >
                     Couldn’t load bills: {error}. Refresh the page to try again.
                   </td>
                 </tr>
@@ -269,7 +302,10 @@ export default function BillsPayables({
 
               {!loading && !error && visible.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-5 py-14 text-center text-[#637a8a]">
+                  <td
+                    colSpan={6}
+                    className="px-5 py-14 text-center text-[#637a8a]"
+                  >
                     {bills.length === 0
                       ? "No supplier bills yet. Bills you record will appear here with their due dates."
                       : "No bills match your search. Clear the search or choose another status."}
@@ -286,9 +322,13 @@ export default function BillsPayables({
                       key={b.reference}
                       className="border-t border-[#dce5ea] transition-colors hover:bg-[#f3f8fb]"
                     >
-                      <td className="px-5 py-4 font-bold text-[#0693c7]">{b.reference}</td>
+                      <td className="px-5 py-4 font-bold text-[#0693c7]">
+                        {b.reference}
+                      </td>
                       <td className="px-4 py-4 text-[#021820]">
-                        {b.description ? `${b.supplier} · ${b.description}` : b.supplier}
+                        {b.description
+                          ? `${b.supplier} · ${b.description}`
+                          : b.supplier}
                       </td>
                       <td className="whitespace-nowrap px-4 py-4 text-[#021820]">
                         {formatDate(b.dueDate)}
@@ -299,7 +339,8 @@ export default function BillsPayables({
                       <td className="px-4 py-4">
                         <span
                           className={`inline-block rounded-md px-3 py-1 text-xs font-medium ${
-                            STATUS_STYLES[b.status] || "bg-[#f3f6f8] text-[#637a8a]"
+                            STATUS_STYLES[b.status] ||
+                            "bg-[#f3f6f8] text-[#637a8a]"
                           }`}
                         >
                           {b.status}
@@ -308,7 +349,9 @@ export default function BillsPayables({
                       <td className="whitespace-nowrap px-4 py-4">
                         <button
                           type="button"
-                          onClick={() => (paid ? onViewBill?.(b) : onPayBill?.(b))}
+                          onClick={() =>
+                            paid ? onViewBill?.(b) : onPayBill?.(b)
+                          }
                           className={`rounded font-medium text-[#0693c7] hover:underline ${FOCUS}`}
                         >
                           {paid ? "View bill →" : "Pay bill →"}

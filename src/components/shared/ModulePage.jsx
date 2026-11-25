@@ -22,7 +22,7 @@ export default function ModulePage({
       user={user}
       onSignOut={onSignOut}
     >
-      <main className="flex flex-col gap-6 p-4 sm:p-8">
+      <main className="flex min-w-0 flex-col gap-6 p-4 sm:p-6 lg:p-8">
         <div className="flex flex-wrap items-center justify-between gap-5">
           <div className="flex flex-col gap-1">
             <p className="text-[10px] font-bold leading-4 text-[#0693c7]">

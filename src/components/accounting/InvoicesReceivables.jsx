@@ -1,7 +1,10 @@
 import { useMemo, useState } from "react";
 import { Icon } from "../layout/AppShell";
 
-const CURRENT_MONTH = new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" });
+const CURRENT_MONTH = new Date().toLocaleDateString("en-US", {
+  month: "long",
+  year: "numeric",
+});
 
 const FILTERS = ["Outstanding", "Overdue", "Paid"];
 
@@ -9,7 +12,10 @@ const PAGE_SIZE = 10;
 
 const DAY = 86400000;
 
-const peso = new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP" });
+const peso = new Intl.NumberFormat("en-PH", {
+  style: "currency",
+  currency: "PHP",
+});
 
 const FOCUS =
   "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#02355d]";
@@ -19,7 +25,9 @@ const pad = (n) => String(n).padStart(2, "0");
 function parseDate(value) {
   if (value instanceof Date) return value;
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value ?? ""));
-  return m ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])) : new Date(value);
+  return m
+    ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]))
+    : new Date(value);
 }
 
 function formatDate(value) {
@@ -40,7 +48,9 @@ function startOfDay(d) {
 
 function statusOf(invoice, today) {
   if (!(Number(invoice.outstanding) > 0)) return "Paid";
-  return startOfDay(parseDate(invoice.dueDate)) < today ? "Overdue" : "Outstanding";
+  return startOfDay(parseDate(invoice.dueDate)) < today
+    ? "Overdue"
+    : "Outstanding";
 }
 
 function exportCsv(rows) {
@@ -72,7 +82,9 @@ function exportCsv(rows) {
 
 function Card({ className = "", children }) {
   return (
-    <div className={`rounded-xl border border-[#dce5ea] bg-white ${className}`}>{children}</div>
+    <div className={`rounded-xl border border-[#dce5ea] bg-white ${className}`}>
+      {children}
+    </div>
   );
 }
 
@@ -105,14 +117,18 @@ export default function InvoicesReceivables({
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
     return invoices.filter((inv) => {
-      if (filter === "Outstanding" && !(Number(inv.outstanding) > 0)) return false;
-      if (filter === "Overdue" && statusOf(inv, today) !== "Overdue") return false;
+      if (filter === "Outstanding" && !(Number(inv.outstanding) > 0))
+        return false;
+      if (filter === "Overdue" && statusOf(inv, today) !== "Overdue")
+        return false;
       if (filter === "Paid" && statusOf(inv, today) !== "Paid") return false;
       if (!q) return true;
       return (
         String(inv.number).toLowerCase().includes(q) ||
         String(inv.customer).toLowerCase().includes(q) ||
-        String(inv.description ?? "").toLowerCase().includes(q)
+        String(inv.description ?? "")
+          .toLowerCase()
+          .includes(q)
       );
     });
   }, [invoices, query, filter, today]);
@@ -125,17 +141,25 @@ export default function InvoicesReceivables({
   const summary = useMemo(() => {
     const open = invoices.filter((inv) => Number(inv.outstanding) > 0);
     const total = invoices.reduce((t, inv) => t + Number(inv.total || 0), 0);
-    const outstanding = open.reduce((t, inv) => t + Number(inv.outstanding || 0), 0);
+    const outstanding = open.reduce(
+      (t, inv) => t + Number(inv.outstanding || 0),
+      0,
+    );
     const collected = total - outstanding;
 
     const byDueDate = [...open].sort(
       (a, b) => parseDate(a.dueDate) - parseDate(b.dueDate),
     );
-    const next = byDueDate.find((inv) => startOfDay(parseDate(inv.dueDate)) >= today) ?? byDueDate[0] ?? null;
+    const next =
+      byDueDate.find((inv) => startOfDay(parseDate(inv.dueDate)) >= today) ??
+      byDueDate[0] ??
+      null;
 
     const aging = { current: 0, early: 0, late: 0 };
     open.forEach((inv) => {
-      const daysLate = Math.round((today - startOfDay(parseDate(inv.dueDate))) / DAY);
+      const daysLate = Math.round(
+        (today - startOfDay(parseDate(inv.dueDate))) / DAY,
+      );
       const value = Number(inv.outstanding || 0);
       if (daysLate <= 0) aging.current += value;
       else if (daysLate <= 30) aging.early += value;
@@ -155,7 +179,7 @@ export default function InvoicesReceivables({
   const monthName = month.split(" ")[0];
 
   return (
-    <main className="flex flex-col gap-6 p-4 sm:p-8">
+    <main className="flex min-w-0 flex-col gap-6 p-4 sm:p-6 lg:p-8">
       <div className="flex flex-col gap-1">
         <p className="text-[10px] font-bold leading-4 text-[#0693c7]">
           FINANCE WORKSPACE / {month.toUpperCase()}
@@ -172,7 +196,11 @@ export default function InvoicesReceivables({
         <StatCard
           label="Total invoiced"
           value={peso.format(summary.total)}
-          caption={invoices.length === 0 ? "No invoices yet" : `${monthName} subscription revenue`}
+          caption={
+            invoices.length === 0
+              ? "No invoices yet"
+              : `${monthName} subscription revenue`
+          }
         />
         <StatCard
           label="Collected"
@@ -266,7 +294,10 @@ export default function InvoicesReceivables({
             <tbody>
               {loading && (
                 <tr>
-                  <td colSpan={6} className="px-5 py-14 text-center text-[#637a8a]">
+                  <td
+                    colSpan={6}
+                    className="px-5 py-14 text-center text-[#637a8a]"
+                  >
                     Loading invoices…
                   </td>
                 </tr>
@@ -274,15 +305,22 @@ export default function InvoicesReceivables({
 
               {!loading && error && (
                 <tr>
-                  <td colSpan={6} className="px-5 py-14 text-center text-[#b0243f]">
-                    Couldn’t load invoices: {error}. Refresh the page to try again.
+                  <td
+                    colSpan={6}
+                    className="px-5 py-14 text-center text-[#b0243f]"
+                  >
+                    Couldn’t load invoices: {error}. Refresh the page to try
+                    again.
                   </td>
                 </tr>
               )}
 
               {!loading && !error && visible.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-5 py-14 text-center text-[#637a8a]">
+                  <td
+                    colSpan={6}
+                    className="px-5 py-14 text-center text-[#637a8a]"
+                  >
                     {invoices.length === 0
                       ? "No invoices yet. Invoices you issue will appear here with what’s still owed."
                       : "No invoices match your search. Clear the search or choose another filter."}
@@ -301,7 +339,9 @@ export default function InvoicesReceivables({
                     >
                       <td className="px-5 py-4 text-[#0693c7]">{inv.number}</td>
                       <td className="px-4 py-4 text-[#021820]">
-                        {inv.description ? `${inv.customer} · ${inv.description}` : inv.customer}
+                        {inv.description
+                          ? `${inv.customer} · ${inv.description}`
+                          : inv.customer}
                       </td>
                       <td className="whitespace-nowrap px-4 py-4 text-[#021820]">
                         {formatDate(inv.dueDate)}
@@ -315,7 +355,9 @@ export default function InvoicesReceivables({
                       <td className="whitespace-nowrap px-4 py-4">
                         <button
                           type="button"
-                          onClick={() => (paid ? onViewInvoice?.(inv) : onRecordPayment?.(inv))}
+                          onClick={() =>
+                            paid ? onViewInvoice?.(inv) : onRecordPayment?.(inv)
+                          }
                           className={`rounded font-medium text-[#0693c7] hover:underline ${FOCUS}`}
                         >
                           {paid ? "View invoice →" : "Record payment →"}
@@ -361,9 +403,12 @@ export default function InvoicesReceivables({
       <div className="grid items-stretch gap-6 xl:grid-cols-[978fr_615fr]">
         <Card className="flex flex-col gap-4 p-6">
           <div>
-            <h2 className="text-[19px] font-bold leading-7 text-[#021820]">Receivables aging</h2>
+            <h2 className="text-[19px] font-bold leading-7 text-[#021820]">
+              Receivables aging
+            </h2>
             <p className="text-xs leading-[18px] text-[#637a8a]">
-              As of {today.getDate()} {today.toLocaleDateString("en-US", { month: "long" })}{" "}
+              As of {today.getDate()}{" "}
+              {today.toLocaleDateString("en-US", { month: "long" })}{" "}
               {today.getFullYear()}
             </p>
           </div>
@@ -390,12 +435,15 @@ export default function InvoicesReceivables({
           </p>
           {summary.next ? (
             <>
-              <p className="text-[19px] font-bold leading-7">{summary.next.customer}</p>
+              <p className="text-[19px] font-bold leading-7">
+                {summary.next.customer}
+              </p>
               <p className="text-[clamp(2rem,3.5vw,3rem)] font-bold leading-[1.2]">
                 {peso.format(Number(summary.next.outstanding || 0))}
               </p>
               <p className="text-xs leading-[18px] text-[#a7bfce]">
-                Due {formatDayMonth(summary.next.dueDate)} · {summary.next.number}
+                Due {formatDayMonth(summary.next.dueDate)} ·{" "}
+                {summary.next.number}
               </p>
               <button
                 type="button"
@@ -407,7 +455,9 @@ export default function InvoicesReceivables({
             </>
           ) : (
             <>
-              <p className="text-[19px] font-bold leading-7">Nothing to collect</p>
+              <p className="text-[19px] font-bold leading-7">
+                Nothing to collect
+              </p>
               <p className="text-[clamp(2rem,3.5vw,3rem)] font-bold leading-[1.2]">
                 {peso.format(0)}
               </p>

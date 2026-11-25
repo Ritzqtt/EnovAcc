@@ -203,7 +203,7 @@ export default function ForgotPasswordPage({
               <p className="text-[16px] font-bold leading-4 text-[#0693c7]">
                 RESET ACCESS
               </p>
-              <h2 className="whitespace-nowrap text-[clamp(28px,4.4vw,42px)] font-bold leading-[1.1] text-[#021820]">
+              <h2 className="text-[clamp(28px,8vw,42px)] font-bold leading-[1.1] text-[#021820] sm:whitespace-nowrap">
                 Create a new password.
               </h2>
               <p className="text-[16px] leading-[22px] text-[#637a8a]">

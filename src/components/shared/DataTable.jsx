@@ -61,12 +61,12 @@ export default function DataTable({
   return (
     <section className={`${card} overflow-hidden`}>
       {}
-      <div className="flex flex-wrap items-center gap-4 p-5">
+      <div className="flex flex-wrap items-center gap-3 p-4 sm:gap-4 sm:p-5">
         <h2 className="text-[19px] font-bold leading-7 text-[#021820]">
           {title}
         </h2>
 
-        <label className="flex h-9 w-[368px] max-w-full items-center gap-2 rounded-lg bg-[#f3f6f8] px-2 text-[#637a8a] focus-within:outline focus-within:outline-2 focus-within:outline-[#0693c7]">
+        <label className="flex h-9 w-full items-center gap-2 rounded-lg bg-[#f3f6f8] px-2 text-[#637a8a] focus-within:outline focus-within:outline-2 focus-within:outline-[#0693c7] sm:w-[368px] sm:max-w-full">
           <Icon name="search" className="h-4 w-4 shrink-0" />
           <input
             type="search"

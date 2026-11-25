@@ -87,8 +87,8 @@ export default function UsersRoles({
   const pageRows = visible.slice(pageStart, pageStart + PAGE_SIZE);
 
   return (
-    <main className="flex flex-col gap-6 p-4 sm:p-8">
-      <div className="flex flex-wrap items-center justify-between gap-4">
+    <main className="flex min-w-0 flex-col gap-6 p-4 sm:p-6 lg:p-8">
+      <div className="flex flex-col items-stretch justify-between gap-4 sm:flex-row sm:flex-wrap sm:items-center">
         <div className="flex flex-col gap-1">
           <p className="text-[10px] font-bold leading-4 text-[#0693c7]">
             FINANCE WORKSPACE / {month.toUpperCase()}
@@ -104,7 +104,7 @@ export default function UsersRoles({
         <button
           type="button"
           onClick={() => onInviteUser?.()}
-          className={`h-11 rounded-lg bg-[#3dc0f0] px-8 text-[13px] font-bold text-white transition-colors hover:bg-[#2fb0e0] ${FOCUS}`}
+          className={`h-11 w-full self-center rounded-lg bg-[#3dc0f0] px-8 text-[13px] font-bold text-white transition-colors hover:bg-[#2fb0e0] sm:w-auto sm:self-auto ${FOCUS}`}
         >
           + Add user
         </button>

@@ -2,7 +2,10 @@ import { useMemo, useState } from "react";
 import { Icon } from "../layout/AppShell";
 
 const now = new Date();
-const CURRENT_MONTH = now.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+const CURRENT_MONTH = now.toLocaleDateString("en-US", {
+  month: "long",
+  year: "numeric",
+});
 
 const STATUSES = ["Posted", "Pending"];
 
@@ -13,7 +16,10 @@ const STATUS_STYLES = {
 
 const PAGE_SIZE = 10;
 
-const peso = new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP" });
+const peso = new Intl.NumberFormat("en-PH", {
+  style: "currency",
+  currency: "PHP",
+});
 
 const FOCUS =
   "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#02355d]";
@@ -29,7 +35,9 @@ function formatDate(value) {
 function exportCsv(rows) {
   const esc = (v) => `"${String(v).replace(/"/g, '""')}"`;
   const lines = [
-    ["Reference", "Description", "Date", "Debit", "Credit", "Status"].map(esc).join(","),
+    ["Reference", "Description", "Date", "Debit", "Credit", "Status"]
+      .map(esc)
+      .join(","),
     ...rows.map((r) =>
       [
         r.reference,
@@ -54,7 +62,9 @@ function exportCsv(rows) {
 
 function Card({ className = "", children }) {
   return (
-    <div className={`rounded-xl border border-[#dce5ea] bg-white ${className}`}>{children}</div>
+    <div className={`rounded-xl border border-[#dce5ea] bg-white ${className}`}>
+      {children}
+    </div>
   );
 }
 
@@ -89,9 +99,13 @@ export default function JournalEntries({
       [...entries].sort((a, b) => {
         const byDate = new Date(b.date) - new Date(a.date);
         if (byDate) return byDate;
-        return String(b.reference).localeCompare(String(a.reference), undefined, {
-          numeric: true,
-        });
+        return String(b.reference).localeCompare(
+          String(a.reference),
+          undefined,
+          {
+            numeric: true,
+          },
+        );
       }),
     [entries],
   );
@@ -129,7 +143,7 @@ export default function JournalEntries({
   }, [entries]);
 
   return (
-    <main className="flex flex-col gap-6 p-4 sm:p-8">
+    <main className="flex min-w-0 flex-col gap-6 p-4 sm:p-6 lg:p-8">
       <div className="flex flex-col gap-1">
         <p className="text-[10px] font-bold leading-4 text-[#0693c7]">
           FINANCE WORKSPACE / {month.toUpperCase()}
@@ -242,7 +256,10 @@ export default function JournalEntries({
             <tbody>
               {loading && (
                 <tr>
-                  <td colSpan={7} className="px-5 py-14 text-center text-[#637a8a]">
+                  <td
+                    colSpan={7}
+                    className="px-5 py-14 text-center text-[#637a8a]"
+                  >
                     Loading entries…
                   </td>
                 </tr>
@@ -250,15 +267,22 @@ export default function JournalEntries({
 
               {!loading && error && (
                 <tr>
-                  <td colSpan={7} className="px-5 py-14 text-center text-[#b0243f]">
-                    Couldn’t load entries: {error}. Refresh the page to try again.
+                  <td
+                    colSpan={7}
+                    className="px-5 py-14 text-center text-[#b0243f]"
+                  >
+                    Couldn’t load entries: {error}. Refresh the page to try
+                    again.
                   </td>
                 </tr>
               )}
 
               {!loading && !error && visible.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-5 py-14 text-center text-[#637a8a]">
+                  <td
+                    colSpan={7}
+                    className="px-5 py-14 text-center text-[#637a8a]"
+                  >
                     {entries.length === 0
                       ? "No journal entries yet. Entries you prepare will appear here with their approval status."
                       : "No entries match your search. Clear the search or choose another status."}
@@ -275,8 +299,12 @@ export default function JournalEntries({
                       key={e.reference}
                       className="border-t border-[#dce5ea] transition-colors hover:bg-[#f3f8fb]"
                     >
-                      <td className="px-5 py-4 font-bold text-[#0693c7]">{e.reference}</td>
-                      <td className="px-4 py-4 text-[#021820]">{e.description}</td>
+                      <td className="px-5 py-4 font-bold text-[#0693c7]">
+                        {e.reference}
+                      </td>
+                      <td className="px-4 py-4 text-[#021820]">
+                        {e.description}
+                      </td>
                       <td className="whitespace-nowrap px-4 py-4 text-[#021820]">
                         {formatDate(e.date)}
                       </td>
@@ -289,7 +317,8 @@ export default function JournalEntries({
                       <td className="px-4 py-4">
                         <span
                           className={`inline-block rounded-md px-3 py-1 text-xs font-medium ${
-                            STATUS_STYLES[e.status] || "bg-[#f3f6f8] text-[#637a8a]"
+                            STATUS_STYLES[e.status] ||
+                            "bg-[#f3f6f8] text-[#637a8a]"
                           }`}
                         >
                           {e.status}
@@ -298,7 +327,9 @@ export default function JournalEntries({
                       <td className="whitespace-nowrap px-5 py-4 text-right">
                         <button
                           type="button"
-                          onClick={() => (pending ? onReviewEntry?.(e) : onViewEntry?.(e))}
+                          onClick={() =>
+                            pending ? onReviewEntry?.(e) : onViewEntry?.(e)
+                          }
                           className={`rounded font-medium text-[#0693c7] hover:underline ${FOCUS}`}
                         >
                           {pending ? "Review & approve →" : "View entry →"}
