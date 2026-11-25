@@ -254,6 +254,7 @@ function App() {
   // Runs after the sign in code is verified and the loading step is done.
   const handleLoadingComplete = () => {
     setAuthNotice('')
+    window.history.replaceState({ auth: 'dashboard' }, '', authUrl('landing'))
     setPage('dashboard')
   }
 
