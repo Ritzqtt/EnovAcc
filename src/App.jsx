@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useState } from "react";
 import { supabase } from "./lib/supabase";
+import useIdleTimeout from "./lib/useIdleTimeout";
 import InitialLoadingScreen from "./components/loading/InitialLoadingScreen";
 import AppShell from "./components/layout/AppShell";
 import Dashboard from "./components/dashboard/Dashboard";
@@ -20,6 +21,8 @@ import AccountSettings from "./components/settings/AccountSettings";
 import ChangePassword from "./components/settings/ChangePassword";
 
 const BASE_PATH = (import.meta.env.BASE_URL || "/").replace(/\/$/, "");
+
+const IDLE_TIMEOUT_MS = 15 * 60 * 1000;
 
 const PAGE_LABELS = {
   dashboard: "Dashboard",
@@ -357,6 +360,21 @@ function App() {
     setPage("landing");
     navigateAuth("landing");
   };
+
+  const handleIdleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) await supabase.auth.signOut({ scope: "local" });
+
+    setCurrentUser(null);
+    setAuthNotice("You were signed out after 15 minutes of inactivity.");
+    navigateAuth("login");
+  };
+
+  useIdleTimeout({
+    enabled: Boolean(currentUser),
+    timeoutMs: IDLE_TIMEOUT_MS,
+    onTimeout: handleIdleLogout,
+  });
 
   const handleNavigate = (label) => {
     const key = label.toLowerCase().replace(/ & /g, "-").replace(/\s+/g, "-");
