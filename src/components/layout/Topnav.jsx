@@ -89,10 +89,13 @@ export default function Topnav({
   onNotificationClick,
   onOpenNavigation,
 }) {
-  const [selectedMonth, setSelectedMonth] = useState(
-    month || currentMonthLabel(),
-  );
+  const [fallbackMonth, setFallbackMonth] = useState(null);
   const [openMenu, setOpenMenu] = useState(null);
+
+  // The month picker is controlled by App: the same value feeds every
+  // page's "FINANCE WORKSPACE / …" breadcrumb. The local value only
+  // covers callers that don't pass a month prop.
+  const selectedMonth = month || fallbackMonth || currentMonthLabel();
 
   const toggleMenu = (name) =>
     setOpenMenu((current) => (current === name ? null : name));
@@ -118,7 +121,7 @@ export default function Topnav({
   const avatarSrc = user?.avatarUrl || defaultProfile;
 
   const selectMonth = (m) => {
-    setSelectedMonth(m);
+    setFallbackMonth(m);
     closeMenu();
     onMonthChange?.(m);
   };
