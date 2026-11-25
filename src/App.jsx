@@ -1,34 +1,19 @@
 import { useEffect, useLayoutEffect, useState } from 'react'
 import { supabase } from './lib/supabase'
-import {
-  ROUTE,
-  STATE_PAGE,
-  DIALOGS_BUILT,
-  NAV_PAGE,
-  TRANSACTION_PAGE,
-  resolve,
-  warnUnsupported,
-} from './lib/navigation'
 import InitialLoadingScreen from './components/InitialLoadingScreen'
+import AppShell from './components/AppShell'
 import Dashboard from './components/Dashboard'
-import NewTransactionDialog from './components/NewTransactionDialog'
-import ChartOfAccounts from './pages/ChartOfAccounts'
-import JournalEntries from './pages/JournalEntries'
-import GeneralLedger from './pages/GeneralLedger'
-import InvoicesReceivables from './pages/InvoicesReceivables'
-import BillsPayables from './pages/BillsPayables'
-import Expenses from './pages/Expenses'
-import BankReconciliation from './pages/BankReconciliation'
-import FinancialReports from './pages/FinancialReports'
-import TaxSummaries from './pages/TaxSummaries'
-import Integrations from './pages/Integrations'
-import PageTransition from './components/PageTransition'
 import AuthSurface from './components/auth/AuthSurface'
-
-// NAV_PAGE and TRANSACTION_PAGE come from ./lib/navigation — the single
-// place button destinations are resolved (see buttonDestinations.js).
+import AccountSettings from './components/AccountSettings'
+import ChangePassword from './components/ChangePassword'
 
 const BASE_PATH = (import.meta.env.BASE_URL || '/').replace(/\/$/, '')
+
+const PAGE_LABELS = {
+  dashboard: 'Dashboard',
+  'account-settings': 'Account Settings',
+  'change-password': 'Change Password',
+}
 
 function readAuthView() {
   if (typeof window === 'undefined') return 'landing'
@@ -82,11 +67,8 @@ function App() {
   )
   const [loading, setLoading] = useState(true)
   const [checkingSession, setCheckingSession] = useState(true)
-  const [month, setMonth] = useState('October 2026')
   const [currentUser, setCurrentUser] = useState(null)
   const [loaderDone, setLoaderDone] = useState(false)
-  // One state for every overlay: the value is a dialog id, null when closed.
-  const [dialog, setDialog] = useState(null)
   // Success message shown on the sign in screen (e.g. after a password reset).
   const [authNotice, setAuthNotice] = useState('')
 
@@ -111,11 +93,15 @@ function App() {
     }
   }, [])
 
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [page])
+
   // Retrieve the user's profile and assigned role.
   const getUserProfile = async (authUser) => {
     const { data: profile, error: profileError } = await supabase
       .from('users')
-      .select('id, full_name, role_id, status')
+      .select('id, full_name, role_id, status, avatar_url')
       .eq('id', authUser.id)
       .single()
 
@@ -154,6 +140,7 @@ function App() {
       role_id: profile.role_id,
       role_name: role.role_name,
       status: profile.status,
+      avatar_url: profile.avatar_url ?? null,
     }
   }
 
@@ -376,53 +363,6 @@ function App() {
     navigateAuth('login')
   }
 
-  // Navigate between application modules.
-  const handleNavigate = (label) => {
-    const next = NAV_PAGE[label]
-
-    if (next) {
-      setPage(next)
-    }
-  }
-
-  // The one dispatcher: interprets a destination from buttonDestinations.js.
-  // "close" and "filter" belong to the caller, not here.
-  const goTo = (dest) => {
-    if (!dest) return
-
-    if (dest.type === 'page') {
-      const route = ROUTE[dest.to]
-      if (route) {
-        setPage(route)
-        return
-      }
-    } else if (dest.type === 'dialog') {
-      if (DIALOGS_BUILT.has(dest.to)) {
-        setDialog(dest.to)
-        return
-      }
-    } else if (dest.type === 'state') {
-      const route = STATE_PAGE[dest.to]
-      if (route) {
-        setPage(route)
-        return
-      }
-    }
-
-    warnUnsupported(dest)
-  }
-
-  // "+ New transaction" dialog -> the module that records the choice.
-  const handleNewTransactionSelect = (type) => {
-    setDialog(null)
-    goTo({ type: 'page', to: TRANSACTION_PAGE[type] })
-  }
-
-  // Dashboard click-through (summary cards, "Review transaction", ...).
-  const handleDashboardGo = (label) => {
-    goTo(resolve('dashboard', label))
-  }
-
   // Sign out from the actual Supabase session.
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut()
@@ -437,70 +377,25 @@ function App() {
     navigateAuth('landing')
   }
 
+  const handleNavigate = (label) => {
+    const key = label.toLowerCase().replace(/ & /g, '-').replace(/\s+/g, '-')
+    if (MODULES[key]) setPage(key)
+  }
+
+  const handleProfileUpdated = (updates) => {
+    setCurrentUser((prev) => (prev ? { ...prev, ...updates } : prev))
+  }
+
   const moduleProps = {
-    onNavigate: handleNavigate,
-    onSignOut: handleSignOut,
     currentUser,
   }
 
-  const monthProps = {
-    month,
-    onMonthChange: setMonth,
-  }
-
   const MODULES = {
-    dashboard: (
-      <Dashboard
-        {...moduleProps}
-        onNewTransaction={() => setDialog('newTransaction')}
-        onSelectSummary={handleDashboardGo}
-        onReviewTransaction={() => handleDashboardGo('Review transaction')}
-      />
+    dashboard: <Dashboard />,
+    'account-settings': (
+      <AccountSettings {...moduleProps} onProfileUpdated={handleProfileUpdated} />
     ),
-
-    'chart-of-accounts': (
-      <ChartOfAccounts {...moduleProps} />
-    ),
-
-    'journal-entries': (
-      <JournalEntries {...moduleProps} {...monthProps} />
-    ),
-
-    'general-ledger': (
-      <GeneralLedger {...moduleProps} {...monthProps} />
-    ),
-
-    'invoices-receivables': (
-      <InvoicesReceivables {...moduleProps} {...monthProps} />
-    ),
-
-    'bills-payables': (
-      <BillsPayables
-        {...moduleProps}
-        month={month}
-        onMonthChange={setMonth}
-      />
-    ),
-
-    expenses: (
-      <Expenses {...moduleProps} {...monthProps} />
-    ),
-
-    'bank-reconciliation': (
-      <BankReconciliation {...moduleProps} {...monthProps} />
-    ),
-
-    'financial-reports': (
-      <FinancialReports {...moduleProps} {...monthProps} />
-    ),
-
-    'tax-summaries': (
-      <TaxSummaries {...moduleProps} {...monthProps} />
-    ),
-
-    integrations: (
-      <Integrations {...moduleProps} {...monthProps} />
-    ),
+    'change-password': <ChangePassword {...moduleProps} />,
   }
 
   // Landing, login, and forgot-password pages.
@@ -539,29 +434,29 @@ function App() {
     )
   }
 
-  let content
+  const content = MODULES[page] ?? null
 
-  if (MODULES[page]) {
-    content = MODULES[page]
-
-  } else {
-    content = null
-  }
+  const shellUser = currentUser
+    ? {
+        name: currentUser.full_name,
+        role: currentUser.role_name,
+        email: currentUser.email,
+        avatarUrl: currentUser.avatar_url,
+      }
+    : undefined
 
   return (
     <>
-      <PageTransition pageKey={page}>
-        {content}
-      </PageTransition>
-
-      {/* Sibling of PageTransition on purpose: its entering layer animates a
-          transform, which would become the containing block for the dialog's
-          position: fixed overlay. */}
-      <NewTransactionDialog
-        open={dialog === 'newTransaction'}
-        onClose={() => setDialog(null)}
-        onSelect={handleNewTransactionSelect}
-      />
+      <AppShell
+        active={PAGE_LABELS[page]}
+        user={shellUser}
+        onNavigate={handleNavigate}
+        onSignOut={handleSignOut}
+      >
+        <div key={page} className="content-enter">
+          {content}
+        </div>
+      </AppShell>
 
       {/* On refresh, the loader sits on top of the dashboard. */}
       {page === 'dashboard' && loading ? (

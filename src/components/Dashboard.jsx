@@ -1,42 +1,32 @@
-import AppShell from "./AppShell";
+const now = new Date();
+const CURRENT_MONTH = now.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+const DATE_LINE = `${now.toLocaleDateString("en-US", { weekday: "long" })}, ${now.toLocaleDateString("en-GB", { day: "numeric", month: "long" })} · Your monthly financial picture.`;
+const MONTH_SHORT = now.toLocaleDateString("en-US", { month: "short" }).toUpperCase();
+const LAST_DAY = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+const CHART_LABELS = [1, 7, 14, 21, LAST_DAY].map(
+  (day) => `${String(day).padStart(2, "0")} ${MONTH_SHORT}`
+);
 
-/* ------------------------------------------------------------------ */
-/*  Sample data. Replace this with real data (Supabase) later.         */
-/*  Every number on the page comes from here.                          */
-/* ------------------------------------------------------------------ */
-const SAMPLE_DATA = {
-  month: "August 2026",
-  dateLine: "Friday, 14 August · Your monthly financial picture.",
-  user: { name: "Alex Rivera", role: "Administrator", initials: "AR" },
-  cash: {
-    amount: 88000,
-    movement: 10000, // net cash movement this month
-    trend: [30, 27, 33, 25, 38, 35, 31, 41, 39, 44],
-  },
-  revenue: 40000,
-  expenses: 12000,
-  expensePct: 30,
-  summary: {
-    netIncome: { value: 28000, note: "70% margin" },
-    receivables: { value: 16000, note: "1 open invoice" },
-    payables: { value: 4000, note: "1 supplier bill" },
-    awaiting: { value: 1800, note: "1 item to review" },
-  },
+const EMPTY_DATA = {
+  month: CURRENT_MONTH,
+  dateLine: DATE_LINE,
+  cash: { amount: 0, movement: 0, trend: Array(10).fill(0) },
+  revenue: 0,
+  expenses: 0,
+  receivables: { amount: 0, count: 0 },
+  payables: { amount: 0, count: 0 },
+  awaiting: { amount: 0, count: 0 },
   chart: {
-    labels: ["01 AUG", "07 AUG", "14 AUG", "21 AUG", "31 AUG"],
-    revenue: [14, 16, 22, 20, 30, 27, 34, 31, 38],
-    expenses: [5, 6, 9, 7, 11, 10, 12, 11, 15],
+    labels: CHART_LABELS,
+    revenue: Array(9).fill(0),
+    expenses: Array(9).fill(0),
   },
-  approval: {
-    count: "01",
-    title: "Development tools subscription",
-    reference: "JE-0006 · Submitted by Alex Rivera",
-    amount: 1800,
-    date: "15 AUG",
-  },
+  approval: null,
 };
 
 const peso = new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP" });
+
+const plural = (count, word) => `${count} ${word}${count === 1 ? "" : "s"}`;
 
 /* ------------------------------------------------------------------ */
 /*  Small helpers                                                      */
@@ -107,7 +97,7 @@ function SummaryItem({ label, value, note, onClick }) {
 }
 
 function CashCard({ cash }) {
-  const max = Math.max(...cash.trend) * 1.1;
+  const max = Math.max(...cash.trend, 1) * 1.1;
   const d = linePath(cash.trend, 760, 4, 50, max);
   return (
     <div className="flex flex-col gap-3 rounded-xl bg-gradient-to-r from-[#02355d] to-[#046fc3] p-8 text-white">
@@ -120,7 +110,7 @@ function CashCard({ cash }) {
       <div className="flex flex-wrap items-start gap-x-6">
         <p className="text-[13px] font-bold leading-5">PHP</p>
         <p className="text-xs leading-[18px] text-[#a7bfce]">
-          + {peso.format(cash.movement).replace(".00", "")} net cash movement this month
+          {cash.movement < 0 ? "−" : "+"} {peso.format(Math.abs(cash.movement)).replace(".00", "")} net cash movement this month
         </p>
       </div>
       <svg
@@ -146,10 +136,11 @@ function CashCard({ cash }) {
 function MonthChart({ month, chart }) {
   const W = 910;
   const H = 145;
-  const max = Math.max(...chart.revenue, ...chart.expenses) * 1.1;
+  const max = Math.max(...chart.revenue, ...chart.expenses, 1) * 1.1;
   const revenuePath = linePath(chart.revenue, W, 10, 125, max);
   const expensePath = linePath(chart.expenses, W, 10, 125, max);
   const areaPath = `${revenuePath} L${W},135 L0,135 Z`;
+  const isEmpty = [...chart.revenue, ...chart.expenses].every((v) => v === 0);
 
   return (
     <Card className="flex flex-col gap-4 p-6">
@@ -207,140 +198,130 @@ function MonthChart({ month, chart }) {
           <p key={label}>{label}</p>
         ))}
       </div>
+
+      {isEmpty && (
+        <p className="text-xs leading-[18px] text-[#637a8a]">
+          No revenue or expenses have been posted this month yet.
+        </p>
+      )}
     </Card>
   );
 }
 
-function ApprovalCard({ approval, onReview }) {
+function ApprovalCard({ count, approval }) {
   return (
     <Card className="flex flex-col gap-4 p-6">
       <div className="flex items-start justify-between gap-4">
         <h2 className="text-[19px] font-bold leading-7 text-[#021820]">Needs your attention</h2>
         <span className="flex h-7 w-[112px] items-center justify-center rounded-md bg-[#fff2d7] text-xs text-[#996514]">
-          {approval.count}
+          {String(count).padStart(2, "0")}
         </span>
       </div>
 
-      <p className="text-[19px] font-bold leading-7 text-[#021820]">{approval.title}</p>
-      <p className="text-xs leading-[18px] text-[#637a8a]">{approval.reference}</p>
+      {approval ? (
+        <>
+          <p className="text-[19px] font-bold leading-7 text-[#021820]">{approval.title}</p>
+          <p className="text-xs leading-[18px] text-[#637a8a]">{approval.reference}</p>
 
-      <div className="flex items-start justify-between gap-4 font-bold">
-        <p className="text-[clamp(1.75rem,2.5vw,2.25rem)] leading-[44px] text-[#021820]">
-          {peso.format(approval.amount)}
-        </p>
-        <p className="text-[10px] leading-4 text-[#637a8a]">{approval.date}</p>
-      </div>
-
-      <button
-        type="button"
-        onClick={onReview}
-        className="mt-auto flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#43c3ed] p-3 text-[13px] font-bold leading-5 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#02355d]"
-      >
-        Review transaction&nbsp; →
-      </button>
+          <div className="flex items-start justify-between gap-4 font-bold">
+            <p className="text-[clamp(1.75rem,2.5vw,2.25rem)] leading-[44px] text-[#021820]">
+              {peso.format(approval.amount)}
+            </p>
+            <p className="text-[10px] leading-4 text-[#637a8a]">{approval.date}</p>
+          </div>
+        </>
+      ) : (
+        <>
+          <p className="text-[19px] font-bold leading-7 text-[#021820]">You're all caught up.</p>
+          <p className="text-xs leading-[18px] text-[#637a8a]">
+            Items waiting for your approval will show up here.
+          </p>
+        </>
+      )}
     </Card>
   );
 }
 
-/* ------------------------------------------------------------------ */
-/*  The page                                                           */
-/* ------------------------------------------------------------------ */
+export default function Dashboard({ data = EMPTY_DATA }) {
+  const { cash, revenue, expenses, receivables, payables, awaiting, chart, approval } = data;
 
-/**
- * Props (all optional):
- *  data                replace SAMPLE_DATA with real numbers
- *  onNavigate          called with a sidebar label when a menu item is clicked
- *  onSignOut           called by the logout icon
- *  onNewTransaction    called by "+ New transaction"
- *  onReviewTransaction called by "Review transaction"
- *  onSelectSummary     called with the card label, e.g. "NET INCOME"
- */
-export default function Dashboard({
-  data = SAMPLE_DATA,
-  onNavigate,
-  onSignOut,
-  onNewTransaction,
-  onReviewTransaction,
-  onSelectSummary,
-}) {
-  const { summary } = data;
+  const netIncome = revenue - expenses;
+  const margin = revenue > 0 ? Math.round((netIncome / revenue) * 100) : 0;
+  const expensePct = revenue > 0 ? Math.round((expenses / revenue) * 100) : 0;
 
   return (
-    <AppShell
-      active="Dashboard"
-      onNavigate={onNavigate}
-      month={data.month}
-      user={data.user}
-      onSignOut={onSignOut}
-    >
-      <main className="flex flex-col gap-6 p-4 sm:p-8">
-        {/* page heading */}
-        <div className="flex flex-wrap items-center justify-between gap-5">
-          <div className="flex flex-col gap-1">
-            <p className="text-[10px] font-bold leading-4 text-[#0693c7]">
-              FINANCE WORKSPACE / {data.month.toUpperCase()}
-            </p>
-            <h1 className="text-[32px] font-bold leading-10 text-[#021820]">
-              Your financial picture.
-            </h1>
-            <p className="text-xs leading-[18px] text-[#637a8a]">{data.dateLine}</p>
-          </div>
-          <button
-            type="button"
-            onClick={onNewTransaction}
-            className="flex h-11 w-[190px] items-center justify-center rounded-lg bg-[#43c3ed] p-3 text-[13px] font-bold leading-5 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#02355d]"
-          >
-            + New transaction
-          </button>
+    <main className="flex flex-col gap-6 p-4 sm:p-8">
+      {/* page heading */}
+      <div className="flex flex-wrap items-center justify-between gap-5">
+        <div className="flex flex-col gap-1">
+          <p className="text-[10px] font-bold leading-4 text-[#0693c7]">
+            FINANCE WORKSPACE / {data.month.toUpperCase()}
+          </p>
+          <h1 className="text-[32px] font-bold leading-10 text-[#021820]">
+            Your financial picture.
+          </h1>
+          <p className="text-xs leading-[18px] text-[#637a8a]">{data.dateLine}</p>
         </div>
+      </div>
 
-        {/* cash + revenue/expenses */}
-        <div className="grid gap-6 xl:grid-cols-[851fr_743fr]">
-          <CashCard cash={data.cash} />
-          <div className="flex flex-col gap-4">
-            <MetricCard
-              title="Revenue"
-              caption="Posted revenue this month"
-              value={data.revenue}
-            />
-            <MetricCard
-              title="Expenses"
-              caption={`${data.expensePct}% of monthly revenue`}
-              value={data.expenses}
-            />
-          </div>
+      {/* cash + revenue/expenses */}
+      <div className="grid gap-6 xl:grid-cols-[851fr_743fr]">
+        <CashCard cash={cash} />
+        <div className="flex flex-col gap-4">
+          <MetricCard
+            title="Revenue"
+            caption="Posted revenue this month"
+            value={revenue}
+          />
+          <MetricCard
+            title="Expenses"
+            caption={`${expensePct}% of monthly revenue`}
+            value={expenses}
+          />
         </div>
+      </div>
 
-        {/* summary strip */}
-        <Card className="grid grid-cols-2 gap-6 p-5 lg:grid-cols-4">
-          <SummaryItem
-            label="NET INCOME"
-            {...summary.netIncome}
-            onClick={() => onSelectSummary?.("NET INCOME")}
-          />
-          <SummaryItem
-            label="RECEIVABLES"
-            {...summary.receivables}
-            onClick={() => onSelectSummary?.("RECEIVABLES")}
-          />
-          <SummaryItem
-            label="PAYABLES"
-            {...summary.payables}
-            onClick={() => onSelectSummary?.("PAYABLES")}
-          />
-          <SummaryItem
-            label="AWAITING APPROVAL"
-            {...summary.awaiting}
-            onClick={() => onSelectSummary?.("AWAITING APPROVAL")}
-          />
-        </Card>
+      {/* summary strip */}
+      <Card className="grid grid-cols-2 gap-6 p-5 lg:grid-cols-4">
+        <SummaryItem
+          label="NET INCOME"
+          value={netIncome}
+          note={revenue > 0 ? `${margin}% margin` : "No revenue yet"}
+        />
+        <SummaryItem
+          label="RECEIVABLES"
+          value={receivables.amount}
+          note={
+            receivables.count === 0
+              ? "No open invoices"
+              : plural(receivables.count, "open invoice")
+          }
+        />
+        <SummaryItem
+          label="PAYABLES"
+          value={payables.amount}
+          note={
+            payables.count === 0
+              ? "No supplier bills"
+              : plural(payables.count, "supplier bill")
+          }
+        />
+        <SummaryItem
+          label="AWAITING APPROVAL"
+          value={awaiting.amount}
+          note={
+            awaiting.count === 0
+              ? "Nothing to review"
+              : `${plural(awaiting.count, "item")} to review`
+          }
+        />
+      </Card>
 
-        {/* chart + approval */}
-        <div className="grid items-start gap-6 xl:grid-cols-[978fr_615fr]">
-          <MonthChart month={data.month} chart={data.chart} />
-          <ApprovalCard approval={data.approval} onReview={onReviewTransaction} />
-        </div>
-      </main>
-    </AppShell>
+      {/* chart + approval */}
+      <div className="grid items-start gap-6 xl:grid-cols-[978fr_615fr]">
+        <MonthChart month={data.month} chart={chart} />
+        <ApprovalCard count={awaiting.count} approval={approval} />
+      </div>
+    </main>
   );
 }
