@@ -50,11 +50,20 @@ const motionVars = {
 export default function AuthSurface({
   view,
   preloading = false,
+  notice,
   onNavigate,
   onSignIn,
   onSignInFailed,
+  onVerifyOtp,
+  onResendOtp,
+  onLoadingComplete,
   onForgotPassword,
-  onSendResetLink,
+  onSendResetCode,
+  onVerifyResetCode,
+  onResendResetCode,
+  onUpdatePassword,
+  onResetComplete,
+  onResetBackToSignIn,
 }) {
   const isAuthPanel = view === 'login' || view === 'forgot-password'
   const isLogin = view === 'login'
@@ -376,16 +385,24 @@ export default function AuthSurface({
         {isLogin ? (
           <LoginFormPanel
             emailRef={emailRef}
+            notice={notice}
             onSignIn={onSignIn}
             onSignInFailed={onSignInFailed}
+            onVerifyOtp={onVerifyOtp}
+            onResendOtp={onResendOtp}
+            onLoadingComplete={onLoadingComplete}
             onBackToLanding={() => onNavigate('landing')}
             onForgotPassword={onForgotPassword}
           />
         ) : (
           <ForgotPasswordPage
             onBackToLanding={() => onNavigate('landing')}
-            onBackToSignIn={() => onNavigate('login')}
-            onSendResetLink={onSendResetLink}
+            onBackToSignIn={onResetBackToSignIn}
+            onSendResetCode={onSendResetCode}
+            onVerifyResetCode={onVerifyResetCode}
+            onResendResetCode={onResendResetCode}
+            onUpdatePassword={onUpdatePassword}
+            onComplete={onResetComplete}
           />
         )}
       </section>

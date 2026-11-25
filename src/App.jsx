@@ -10,10 +10,6 @@ import {
   warnUnsupported,
 } from './lib/navigation'
 import InitialLoadingScreen from './components/InitialLoadingScreen'
-import SignInFailedPage from './components/SignInFailedPage'
-import PasswordResetFailedPage from './components/PasswordResetFailedPage'
-import VerifyingLinkLoadingPage from './components/VerifyingLinkLoadingPage'
-import MatchingPasswordLoadingPage from './components/MatchingPasswordLoadingPage'
 import Dashboard from './components/Dashboard'
 import NewTransactionDialog from './components/NewTransactionDialog'
 import ChartOfAccounts from './pages/ChartOfAccounts'
@@ -26,12 +22,6 @@ import BankReconciliation from './pages/BankReconciliation'
 import FinancialReports from './pages/FinancialReports'
 import TaxSummaries from './pages/TaxSummaries'
 import Integrations from './pages/Integrations'
-import SendingResetLinkPage from './components/SendingResetLinkPage'
-import ResetLinkSentPage from './components/ResetLinkSentPage'
-import ResetPasswordPage from './components/ResetPasswordPage'
-import SavingPasswordPage from './components/SavingPasswordPage'
-import PasswordUpdatedPage from './components/PasswordUpdatedPage'
-import SigningInLoadingPage from './components/SigningInLoadingPage'
 import PageTransition from './components/PageTransition'
 import AuthSurface from './components/auth/AuthSurface'
 
@@ -72,6 +62,18 @@ function hasStoredSession() {
   }
 }
 
+function friendlyOtpError(error) {
+  const message = error?.message?.toLowerCase() ?? ''
+  if (
+    error?.status === 429 ||
+    message.includes('rate limit') ||
+    message.includes('security purposes')
+  ) {
+    return 'Please wait a few seconds before requesting another code.'
+  }
+  return "We couldn't send the code. Try again."
+}
+
 function App() {
   // If a session is stored, start on the dashboard so that the loader fades
   // out onto the dashboard instead of the landing page.
@@ -80,12 +82,13 @@ function App() {
   )
   const [loading, setLoading] = useState(true)
   const [checkingSession, setCheckingSession] = useState(true)
-  const [pendingEmail, setPendingEmail] = useState('')
   const [month, setMonth] = useState('October 2026')
   const [currentUser, setCurrentUser] = useState(null)
   const [loaderDone, setLoaderDone] = useState(false)
   // One state for every overlay: the value is a dialog id, null when closed.
   const [dialog, setDialog] = useState(null)
+  // Success message shown on the sign in screen (e.g. after a password reset).
+  const [authNotice, setAuthNotice] = useState('')
 
   // Normalize the address bar once per full load.
   useEffect(() => {
@@ -223,6 +226,9 @@ function App() {
   const navigateAuth = (next) => {
     if (next === page) return
 
+    // The "password updated" message only belongs on the sign in screen.
+    if (next !== 'login') setAuthNotice('')
+
     setLoading(false)
 
     if (typeof window !== 'undefined') {
@@ -245,42 +251,128 @@ function App() {
     setPage(next)
   }
 
-  // Show the existing signing-in loading screen.
-  const acceptCredentials = () => {
-    setPage('signing-in')
-
-    setTimeout(() => {
-      setPage('dashboard')
-    }, 2200)
+  // Runs after the sign in code is verified and the loading step is done.
+  const handleLoadingComplete = () => {
+    setAuthNotice('')
+    setPage('dashboard')
   }
 
-  // Authenticate using Supabase.
+  // Step 1 of sign in: check the password and profile, then email a code.
+  // The password session is discarded right away; the real session is only
+  // created when the correct code is verified.
   const handleSupabaseSignIn = async (email, password) => {
     const { data: authData, error: authError } =
-      await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
+      await supabase.auth.signInWithPassword({ email, password })
 
     if (authError) {
-      throw authError
+      const invalid = authError.message
+        ?.toLowerCase()
+        .includes('invalid login credentials')
+      throw new Error(
+        invalid ? 'Incorrect email or password.' : authError.message,
+      )
     }
 
     if (!authData.user) {
-      await supabase.auth.signOut()
+      await supabase.auth.signOut({ scope: 'local' })
       throw new Error('Unable to retrieve authenticated user.')
     }
 
     try {
-      const userProfile = await getUserProfile(authData.user)
-
-      setCurrentUser(userProfile)
-
-      acceptCredentials()
-    } catch (error) {
-      await supabase.auth.signOut()
-      throw error
+      // Needs the temporary session, so this runs before signing out.
+      await getUserProfile(authData.user)
+    } catch (profileError) {
+      await supabase.auth.signOut({ scope: 'local' })
+      throw profileError
     }
+
+    // scope: 'local' only clears this browser. A plain signOut() would also
+    // log the user out of their other devices.
+    await supabase.auth.signOut({ scope: 'local' })
+
+    const { error: otpError } = await supabase.auth.signInWithOtp({
+      email,
+      options: { shouldCreateUser: false },
+    })
+
+    if (otpError) {
+      throw new Error(friendlyOtpError(otpError))
+    }
+
+    const [name, domain] = email.split('@')
+    return {
+      challengeId: email,
+      maskedEmail: `${name[0]}${'*'.repeat(Math.max(name.length - 1, 2))}@${domain}`,
+    }
+  }
+
+  // Step 2: check the emailed code. This is what creates the real session.
+  const handleVerifyOtp = async (email, code) => {
+    const { data, error } = await supabase.auth.verifyOtp({
+      email,
+      token: code,
+      type: 'email',
+    })
+
+    if (error || !data.user) {
+      throw new Error('Incorrect or expired code. Try again.')
+    }
+
+    try {
+      const userProfile = await getUserProfile(data.user)
+      setCurrentUser(userProfile)
+    } catch (profileError) {
+      await supabase.auth.signOut({ scope: 'local' })
+      throw profileError
+    }
+  }
+
+  const handleResendOtp = async (email) => {
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: { shouldCreateUser: false },
+    })
+
+    if (error) {
+      throw new Error(friendlyOtpError(error))
+    }
+  }
+
+  // Forgot password, step 1: email a 6-digit code. Supabase doesn't say
+  // whether the email is registered, which is intentional.
+  const handleSendResetCode = async (email) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email)
+    if (error) throw new Error(friendlyOtpError(error))
+  }
+
+  // Step 2: check the code. This creates a temporary session.
+  const handleVerifyResetCode = async (email, code) => {
+    const { data, error } = await supabase.auth.verifyOtp({
+      email,
+      token: code,
+      type: 'recovery',
+    })
+    if (error || !data.session) {
+      throw new Error('Incorrect or expired code. Try again.')
+    }
+  }
+
+  // Step 3: save the new password.
+  const handleUpdatePassword = async (newPassword) => {
+    const { error } = await supabase.auth.updateUser({ password: newPassword })
+    if (error) throw new Error(error.message)
+  }
+
+  // Done: clear the temporary session and go back to sign in.
+  const handleResetComplete = async () => {
+    await supabase.auth.signOut({ scope: 'local' })
+    setAuthNotice('Your password was updated. Sign in with your new password.')
+    navigateAuth('login')
+  }
+
+  const handleResetBackToSignIn = async () => {
+    await supabase.auth.signOut({ scope: 'local' })
+    navigateAuth('login')
   }
 
   // Navigate between application modules.
@@ -423,18 +515,20 @@ function App() {
         <AuthSurface
           view={page}
           preloading={loading}
+          notice={authNotice}
           onNavigate={navigateAuth}
           onSignIn={handleSupabaseSignIn}
-          onSignInFailed={() => setPage('sign-in-failed')}
+          onSignInFailed={() => setPage('login')}
+          onVerifyOtp={handleVerifyOtp}
+          onResendOtp={handleResendOtp}
+          onLoadingComplete={handleLoadingComplete}
           onForgotPassword={() => setPage('forgot-password')}
-          onSendResetLink={async (email) => {
-            setPendingEmail(email)
-            setPage('sending-reset-link')
-
-            setTimeout(() => {
-              setPage('check-inbox')
-            }, 2200)
-          }}
+          onSendResetCode={handleSendResetCode}
+          onVerifyResetCode={handleVerifyResetCode}
+          onResendResetCode={handleSendResetCode}
+          onUpdatePassword={handleUpdatePassword}
+          onResetComplete={handleResetComplete}
+          onResetBackToSignIn={handleResetBackToSignIn}
         />
 
         {page === 'landing' && loading ? (
@@ -448,90 +542,6 @@ function App() {
 
   if (MODULES[page]) {
     content = MODULES[page]
-
-  } else if (page === 'signing-in') {
-    content = <SigningInLoadingPage />
-
-  } else if (page === 'sending-reset-link') {
-    content = <SendingResetLinkPage />
-
-  } else if (page === 'check-inbox') {
-    content = (
-      <ResetLinkSentPage
-        email={pendingEmail}
-        onBackToLanding={() => navigateAuth('landing')}
-        onBackToSignIn={() => navigateAuth('login')}
-        onOpenResetLink={() => {
-          setPage('verifying-link')
-
-          setTimeout(() => {
-            setPage('reset-password')
-          }, 2200)
-        }}
-        onResendLink={() =>
-          window.alert(
-            'We sent a new reset link to ' + pendingEmail
-          )
-        }
-      />
-    )
-
-  } else if (page === 'verifying-link') {
-    content = <VerifyingLinkLoadingPage />
-
-  } else if (page === 'reset-password') {
-    content = (
-      <ResetPasswordPage
-        onBackToLanding={() => navigateAuth('landing')}
-        onBackToSignIn={() => navigateAuth('login')}
-        onResetFailed={() => {
-          setPage('matching-password')
-
-          setTimeout(() => {
-            setPage('password-reset-failed')
-          }, 2200)
-        }}
-        onSaveNewPassword={async () => {
-          setPage('saving-password')
-
-          setTimeout(() => {
-            setPage('password-updated')
-          }, 2200)
-        }}
-      />
-    )
-
-  } else if (page === 'matching-password') {
-    content = <MatchingPasswordLoadingPage />
-
-  } else if (page === 'password-reset-failed') {
-    content = (
-      <PasswordResetFailedPage
-        onBackToLanding={() => navigateAuth('landing')}
-        onTryAgain={() => setPage('reset-password')}
-        onRequestNewLink={() => setPage('forgot-password')}
-      />
-    )
-
-  } else if (page === 'saving-password') {
-    content = <SavingPasswordPage />
-
-  } else if (page === 'password-updated') {
-    content = (
-      <PasswordUpdatedPage
-        onBackToLanding={() => navigateAuth('landing')}
-        onBackToSignIn={() => navigateAuth('login')}
-      />
-    )
-
-  } else if (page === 'sign-in-failed') {
-    content = (
-      <SignInFailedPage
-        onBackToLanding={() => navigateAuth('landing')}
-        onTryAgain={() => navigateAuth('login')}
-        onForgotPassword={() => setPage('forgot-password')}
-      />
-    )
 
   } else {
     content = null
