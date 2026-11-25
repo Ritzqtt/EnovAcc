@@ -17,11 +17,11 @@ const SECTIONS = [
   {
     title: "INSIGHTS & CONTROL",
     items: [
-      ["Financial reports", "chart"],
-      ["Tax summaries", "tax"],
+      ["Financial Reports", "chart"],
+      ["Tax Summaries", "tax"],
       ["Integrations", "plug"],
-      ["Audit trail", "shield"],
-      ["Users & roles", "users"],
+      ["Audit Trail", "shield"],
+      ["Users & Roles", "users"],
     ],
   },
 ];
