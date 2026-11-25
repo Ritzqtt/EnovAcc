@@ -27,8 +27,8 @@ const SECTIONS = [
 ];
 
 const HIDDEN_ITEMS_BY_ROLE = {
-  accountant: ["Audit trail", "Users & roles"],
-  "finance manager": ["Users & roles"],
+  accountant: ["Audit Trail", "Users & Roles"],
+  "finance manager": ["Users & Roles"],
 };
 
 const ALL_RESTRICTED_ITEMS = new Set(

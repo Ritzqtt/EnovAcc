@@ -22,7 +22,8 @@ import ChangePassword from "./components/settings/ChangePassword";
 
 const BASE_PATH = (import.meta.env.BASE_URL || "/").replace(/\/$/, "");
 
-const IDLE_TIMEOUT_MS = 15 * 60 * 1000;
+const IDLE_TIMEOUT_MINUTES = 15;
+const IDLE_TIMEOUT_MS = IDLE_TIMEOUT_MINUTES * 60 * 1000;
 
 const PAGE_LABELS = {
   dashboard: "Dashboard",
@@ -366,7 +367,9 @@ function App() {
     if (error) await supabase.auth.signOut({ scope: "local" });
 
     setCurrentUser(null);
-    setAuthNotice("You were signed out after 15 minutes of inactivity.");
+    setAuthNotice(
+      `You were signed out after ${IDLE_TIMEOUT_MINUTES} minutes of inactivity.`,
+    );
     navigateAuth("login");
   };
 
