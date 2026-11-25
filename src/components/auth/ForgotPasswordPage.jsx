@@ -1,5 +1,5 @@
 import { useState } from "react";
-import OtpPanel from "./auth/OtpPanel";
+import OtpPanel from "./OtpPanel";
 
 const MIN_PASSWORD = 8;
 

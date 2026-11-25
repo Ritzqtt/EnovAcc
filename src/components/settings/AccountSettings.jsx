@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { supabase } from "../lib/supabase";
-import defaultProfile from "../assets/default-profile.jpg";
+import { supabase } from "../../lib/supabase";
+import defaultProfile from "../../assets/default-profile.jpg";
 
 const MAX_PHOTO_BYTES = 2 * 1024 * 1024;
 const PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"];

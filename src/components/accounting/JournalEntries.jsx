@@ -1,13 +1,14 @@
 import { useMemo, useState } from "react";
-import { Icon } from "./AppShell";
+import { Icon } from "../layout/AppShell";
 
-const CURRENT_MONTH = new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" });
+const now = new Date();
+const CURRENT_MONTH = now.toLocaleDateString("en-US", { month: "long", year: "numeric" });
 
-const STATUSES = ["Outstanding", "Paid"];
+const STATUSES = ["Posted", "Pending"];
 
 const STATUS_STYLES = {
-  Outstanding: "bg-[#fff2d7] text-[#996514]",
-  Paid: "bg-[#e1f5ec] text-[#13774f]",
+  Posted: "bg-[#e1f5ec] text-[#13774f]",
+  Pending: "bg-[#fff2d7] text-[#996514]",
 };
 
 const PAGE_SIZE = 10;
@@ -19,41 +20,23 @@ const FOCUS =
 
 const pad = (n) => String(n).padStart(2, "0");
 
-const plural = (count, word) => `${count} ${word}${count === 1 ? "" : "s"}`;
-
-function parseDate(value) {
-  if (value instanceof Date) return value;
-  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value ?? ""));
-  return m ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])) : new Date(value);
-}
-
 function formatDate(value) {
-  const d = parseDate(value);
+  const d = new Date(value);
   if (Number.isNaN(d.getTime())) return String(value ?? "");
   return `${pad(d.getDate())} ${d.toLocaleDateString("en-US", { month: "short" })} ${d.getFullYear()}`;
-}
-
-function formatDayMonth(value) {
-  const d = parseDate(value);
-  if (Number.isNaN(d.getTime())) return String(value ?? "");
-  return `${d.getDate()} ${d.toLocaleDateString("en-US", { month: "long" })}`;
-}
-
-function inMonth(value, ref) {
-  const d = parseDate(value);
-  return d.getFullYear() === ref.getFullYear() && d.getMonth() === ref.getMonth();
 }
 
 function exportCsv(rows) {
   const esc = (v) => `"${String(v).replace(/"/g, '""')}"`;
   const lines = [
-    ["Reference", "Supplier / Description", "Due date", "Amount", "Status"].map(esc).join(","),
+    ["Reference", "Description", "Date", "Debit", "Credit", "Status"].map(esc).join(","),
     ...rows.map((r) =>
       [
         r.reference,
-        r.description ? `${r.supplier} · ${r.description}` : r.supplier,
-        formatDate(r.dueDate),
-        Number(r.amount || 0).toFixed(2),
+        r.description,
+        formatDate(r.date),
+        Number(r.debit).toFixed(2),
+        Number(r.credit).toFixed(2),
         r.status,
       ]
         .map(esc)
@@ -64,7 +47,7 @@ function exportCsv(rows) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = "supplier-bills.csv";
+  a.download = "journal-entries.csv";
   a.click();
   URL.revokeObjectURL(url);
 }
@@ -75,11 +58,13 @@ function Card({ className = "", children }) {
   );
 }
 
-function StatCard({ label, value, caption }) {
+function StatCard({ label, value, caption, valueClass = "text-[#021820]" }) {
   return (
     <Card className="flex flex-col gap-2 p-5">
       <p className="text-xs leading-[18px] text-[#637a8a]">{label}</p>
-      <p className="text-[clamp(1.75rem,2.5vw,2.25rem)] font-bold leading-[44px] text-[#021820]">
+      <p
+        className={`text-[clamp(1.75rem,2.5vw,2.25rem)] font-bold leading-[44px] ${valueClass}`}
+      >
         {value}
       </p>
       <p className="text-xs leading-[18px] text-[#637a8a]">{caption}</p>
@@ -87,57 +72,61 @@ function StatCard({ label, value, caption }) {
   );
 }
 
-export default function BillsPayables({
-  bills = [],
+export default function JournalEntries({
+  entries = [],
   loading = false,
   error = null,
   month = CURRENT_MONTH,
-  onPayBill,
-  onViewBill,
+  onViewEntry,
+  onReviewEntry,
 }) {
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [page, setPage] = useState(1);
 
+  const sorted = useMemo(
+    () =>
+      [...entries].sort((a, b) => {
+        const byDate = new Date(b.date) - new Date(a.date);
+        if (byDate) return byDate;
+        return String(b.reference).localeCompare(String(a.reference), undefined, {
+          numeric: true,
+        });
+      }),
+    [entries],
+  );
+
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return bills.filter((b) => {
-      if (statusFilter !== "All" && b.status !== statusFilter) return false;
+    return sorted.filter((e) => {
+      if (statusFilter !== "All" && e.status !== statusFilter) return false;
       if (!q) return true;
       return (
-        String(b.reference).toLowerCase().includes(q) ||
-        String(b.supplier).toLowerCase().includes(q) ||
-        String(b.description ?? "").toLowerCase().includes(q)
+        String(e.reference).toLowerCase().includes(q) ||
+        String(e.description).toLowerCase().includes(q) ||
+        String(e.status).toLowerCase().includes(q)
       );
     });
-  }, [bills, query, statusFilter]);
+  }, [sorted, query, statusFilter]);
 
   const totalPages = Math.max(1, Math.ceil(visible.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
   const pageStart = (currentPage - 1) * PAGE_SIZE;
   const pageRows = visible.slice(pageStart, pageStart + PAGE_SIZE);
 
-  const summary = useMemo(() => {
-    const today = new Date();
-    const sum = (list) => list.reduce((t, b) => t + Number(b.amount || 0), 0);
-    const open = bills.filter((b) => b.status === "Outstanding");
-    const dueThisMonth = open.filter((b) => inMonth(b.dueDate, today));
-    const paidThisMonth = bills.filter(
-      (b) => b.status === "Paid" && inMonth(b.paidDate ?? b.dueDate, today),
-    );
-    const upcoming = [...dueThisMonth].sort((a, b) => parseDate(a.dueDate) - parseDate(b.dueDate));
-    const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    const next = upcoming.find((b) => parseDate(b.dueDate) >= startOfToday) ?? upcoming[0] ?? null;
-
+  const stats = useMemo(() => {
+    const posted = entries.filter((e) => e.status === "Posted");
+    const pending = entries.filter((e) => e.status === "Pending");
+    const debits = entries.reduce((t, e) => t + Number(e.debit || 0), 0);
+    const credits = entries.reduce((t, e) => t + Number(e.credit || 0), 0);
     return {
-      openCount: open.length,
-      openAmount: sum(open),
-      dueAmount: sum(dueThisMonth),
-      paidCount: paidThisMonth.length,
-      paidAmount: sum(paidThisMonth),
-      next,
+      posted: posted.length,
+      pending: pending.length,
+      pendingAmount: pending.reduce((t, e) => t + Number(e.debit || 0), 0),
+      balanced: Math.abs(debits - credits) < 0.005,
+      difference: Math.abs(debits - credits),
     };
-  }, [bills]);
+  }, [entries]);
 
   return (
     <main className="flex flex-col gap-6 p-4 sm:p-8">
@@ -146,49 +135,48 @@ export default function BillsPayables({
           FINANCE WORKSPACE / {month.toUpperCase()}
         </p>
         <h1 className="text-[32px] font-bold leading-10 text-[#021820]">
-          A clear view of what is due.
+          Every entry, accounted for.
         </h1>
         <p className="text-xs leading-[18px] text-[#637a8a]">
-          Keep supplier obligations and payments organized.
+          Prepare, review, and post with a clear approval trail.
         </p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">
         <StatCard
-          label="Open payables"
-          value={peso.format(summary.openAmount)}
+          label="Posted entries"
+          value={pad(stats.posted)}
+          caption="Included in financial reports"
+        />
+        <StatCard
+          label="Awaiting review"
+          value={pad(stats.pending)}
           caption={
-            summary.openCount === 0
-              ? "No open supplier bills"
-              : `${plural(summary.openCount, "approved supplier bill")}`
+            stats.pending === 0
+              ? "Nothing to approve"
+              : `${peso.format(stats.pendingAmount)} to approve`
           }
         />
         <StatCard
-          label="Due this month"
-          value={peso.format(summary.dueAmount)}
+          label="Ledger integrity"
+          value={stats.balanced ? "Balanced" : "Out of balance"}
+          valueClass={stats.balanced ? "text-[#021820]" : "text-[#996514]"}
           caption={
-            summary.next
-              ? `Next payment: ${formatDayMonth(summary.next.dueDate)}`
-              : "No payments due"
-          }
-        />
-        <StatCard
-          label="Paid this month"
-          value={peso.format(summary.paidAmount)}
-          caption={
-            summary.paidCount === 0
-              ? "No posted supplier payments"
-              : `${plural(summary.paidCount, "supplier payment")} posted`
+            stats.balanced
+              ? "Total debits equal total credits"
+              : `Debits and credits differ by ${peso.format(stats.difference)}`
           }
         />
       </div>
 
       <Card className="overflow-hidden">
         <div className="flex flex-wrap items-center gap-3 p-5">
-          <h2 className="mr-2 text-[19px] font-bold leading-7 text-[#021820]">Supplier bills</h2>
+          <h2 className="mr-2 text-[19px] font-bold leading-7 text-[#021820]">
+            Journal register
+          </h2>
 
           <label className="relative min-w-[220px] flex-1 sm:max-w-[360px]">
-            <span className="sr-only">Search bills</span>
+            <span className="sr-only">Search entries</span>
             <Icon
               name="search"
               className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#637a8a]"
@@ -200,7 +188,7 @@ export default function BillsPayables({
                 setQuery(e.target.value);
                 setPage(1);
               }}
-              placeholder="Search by reference or supplier"
+              placeholder="Search by reference, description or status"
               className="h-10 w-full rounded-lg bg-[#f3f6f8] pl-9 pr-3 text-[13px] text-[#021820] outline-none placeholder:text-[#637a8a] focus-visible:ring-2 focus-visible:ring-[#0693c7]"
             />
           </label>
@@ -239,79 +227,81 @@ export default function BillsPayables({
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[820px] border-collapse text-left text-[13px]">
+          <table className="w-full min-w-[860px] border-collapse text-left text-[13px]">
             <thead>
               <tr className="bg-[#f3f6f8] text-[10px] font-bold uppercase leading-4 text-[#637a8a]">
                 <th className="px-5 py-3">Reference</th>
-                <th className="px-4 py-3">Supplier / Description</th>
-                <th className="px-4 py-3">Due date</th>
-                <th className="px-4 py-3">Amount</th>
+                <th className="px-4 py-3">Description</th>
+                <th className="px-4 py-3">Date</th>
+                <th className="px-4 py-3 text-right">Debit</th>
+                <th className="px-4 py-3 text-right">Credit</th>
                 <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Action</th>
+                <th className="px-5 py-3 text-right">Action</th>
               </tr>
             </thead>
             <tbody>
               {loading && (
                 <tr>
-                  <td colSpan={6} className="px-5 py-14 text-center text-[#637a8a]">
-                    Loading bills…
+                  <td colSpan={7} className="px-5 py-14 text-center text-[#637a8a]">
+                    Loading entries…
                   </td>
                 </tr>
               )}
 
               {!loading && error && (
                 <tr>
-                  <td colSpan={6} className="px-5 py-14 text-center text-[#b0243f]">
-                    Couldn’t load bills: {error}. Refresh the page to try again.
+                  <td colSpan={7} className="px-5 py-14 text-center text-[#b0243f]">
+                    Couldn’t load entries: {error}. Refresh the page to try again.
                   </td>
                 </tr>
               )}
 
               {!loading && !error && visible.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-5 py-14 text-center text-[#637a8a]">
-                    {bills.length === 0
-                      ? "No supplier bills yet. Bills you record will appear here with their due dates."
-                      : "No bills match your search. Clear the search or choose another status."}
+                  <td colSpan={7} className="px-5 py-14 text-center text-[#637a8a]">
+                    {entries.length === 0
+                      ? "No journal entries yet. Entries you prepare will appear here with their approval status."
+                      : "No entries match your search. Clear the search or choose another status."}
                   </td>
                 </tr>
               )}
 
               {!loading &&
                 !error &&
-                pageRows.map((b) => {
-                  const paid = b.status === "Paid";
+                pageRows.map((e) => {
+                  const pending = e.status === "Pending";
                   return (
                     <tr
-                      key={b.reference}
+                      key={e.reference}
                       className="border-t border-[#dce5ea] transition-colors hover:bg-[#f3f8fb]"
                     >
-                      <td className="px-5 py-4 font-bold text-[#0693c7]">{b.reference}</td>
-                      <td className="px-4 py-4 text-[#021820]">
-                        {b.description ? `${b.supplier} · ${b.description}` : b.supplier}
-                      </td>
+                      <td className="px-5 py-4 font-bold text-[#0693c7]">{e.reference}</td>
+                      <td className="px-4 py-4 text-[#021820]">{e.description}</td>
                       <td className="whitespace-nowrap px-4 py-4 text-[#021820]">
-                        {formatDate(b.dueDate)}
+                        {formatDate(e.date)}
                       </td>
-                      <td className="px-4 py-4 tabular-nums text-[#021820]">
-                        {peso.format(Number(b.amount || 0))}
+                      <td className="px-4 py-4 text-right tabular-nums text-[#021820]">
+                        {peso.format(Number(e.debit || 0))}
+                      </td>
+                      <td className="px-4 py-4 text-right tabular-nums text-[#021820]">
+                        {peso.format(Number(e.credit || 0))}
                       </td>
                       <td className="px-4 py-4">
                         <span
                           className={`inline-block rounded-md px-3 py-1 text-xs font-medium ${
-                            STATUS_STYLES[b.status] || "bg-[#f3f6f8] text-[#637a8a]"
+                            STATUS_STYLES[e.status] || "bg-[#f3f6f8] text-[#637a8a]"
                           }`}
                         >
-                          {b.status}
+                          {e.status}
                         </span>
                       </td>
-                      <td className="whitespace-nowrap px-4 py-4">
+                      <td className="whitespace-nowrap px-5 py-4 text-right">
                         <button
                           type="button"
-                          onClick={() => (paid ? onViewBill?.(b) : onPayBill?.(b))}
+                          onClick={() => (pending ? onReviewEntry?.(e) : onViewEntry?.(e))}
                           className={`rounded font-medium text-[#0693c7] hover:underline ${FOCUS}`}
                         >
-                          {paid ? "View bill →" : "Pay bill →"}
+                          {pending ? "Review & approve →" : "View entry →"}
                         </button>
                       </td>
                     </tr>
@@ -324,8 +314,8 @@ export default function BillsPayables({
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#dce5ea] px-5 py-4 text-xs leading-[18px] text-[#637a8a]">
           <p>
             {visible.length === 0
-              ? "0 bills"
-              : `Showing ${pageStart + 1}–${pageStart + pageRows.length} of ${visible.length} ${visible.length === 1 ? "bill" : "bills"}`}
+              ? "0 entries"
+              : `Showing ${pageStart + 1}–${pageStart + pageRows.length} of ${visible.length} ${visible.length === 1 ? "entry" : "entries"}`}
           </p>
           <div className="flex items-center gap-3">
             <button

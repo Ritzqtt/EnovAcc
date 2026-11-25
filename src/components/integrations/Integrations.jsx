@@ -1,21 +1,21 @@
 import { useMemo, useState } from "react";
-import { Icon } from "./AppShell";
+import { Icon } from "../layout/AppShell";
 
 const CURRENT_MONTH = new Date().toLocaleDateString("en-US", {
   month: "long",
   year: "numeric",
 });
 
-const PAGE_SIZE = 15;
+const PAGE_SIZE = 10;
 
-const ACTION_OPTIONS = [
-  "Signed in",
-  "Submitted expense",
-  "Approved and posted journal",
-  "Recorded customer payment",
-];
+const STATUS_STYLES = {
+  Available: "bg-[#e4f3fb] text-[#0a6fa6]",
+  Ready: "bg-[#e4f3fb] text-[#0a6fa6]",
+};
 
-const TINTED_ACTIONS = new Set(["Signed in"]);
+const STATUS_OPTIONS = ["Available", "Ready"];
+
+const TINTED_STATUSES = new Set(["Available"]);
 
 const FOCUS =
   "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#02355d]";
@@ -24,41 +24,74 @@ const pad = (n) => String(n).padStart(2, "0");
 
 const plural = (count, word) => `${count} ${word}${count === 1 ? "" : "s"}`;
 
-const DATE_ONLY = /^(\d{4})-(\d{2})-(\d{2})$/;
-
-function parseTimestamp(value) {
+function parseDate(value) {
   if (value instanceof Date) return value;
-  const m = DATE_ONLY.exec(String(value ?? ""));
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value ?? ""));
   return m
     ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]))
     : new Date(value);
 }
 
-function formatTimestamp(value) {
-  const d = parseTimestamp(value);
+function formatDate(value) {
+  const d = parseDate(value);
   if (Number.isNaN(d.getTime())) return String(value ?? "");
-  const date = `${pad(d.getDate())} ${d.toLocaleDateString("en-US", { month: "short" })} ${d.getFullYear()}`;
-  if (typeof value === "string" && DATE_ONLY.test(value)) return date;
-  return `${date} · ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  return `${pad(d.getDate())} ${d.toLocaleDateString("en-US", { month: "short" })} ${d.getFullYear()}`;
 }
 
 function exportCsv(rows) {
   const esc = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
   const lines = [
-    ["Timestamp", "User", "Action", "Reference"].map(esc).join(","),
+    ["Date", "Module", "Activity", "Status"].map(esc).join(","),
     ...rows.map((r) =>
-      [formatTimestamp(r.timestamp), r.user, r.action, r.reference]
-        .map(esc)
-        .join(","),
+      [formatDate(r.date), r.module, r.activity, r.status].map(esc).join(","),
     ),
   ];
   const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = "audit-trail.csv";
+  a.download = "exchange-activity.csv";
   a.click();
   URL.revokeObjectURL(url);
+}
+
+function UsersGlyph() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="h-6 w-6"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <circle cx="9" cy="8" r="3.25" />
+      <path d="M3.5 19c.5-3 2.8-4.75 5.5-4.75S14 16 14.5 19" />
+      <path d="M15.5 5.2a3 3 0 0 1 0 5.6" />
+      <path d="M17 14.5c1.9.5 3.1 2 3.5 4.5" />
+    </svg>
+  );
+}
+
+function BarsGlyph() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="h-6 w-6"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M5 19v-5" />
+      <path d="M12 19V6" />
+      <path d="M19 19v-9" />
+    </svg>
+  );
 }
 
 function Card({ className = "", children }) {
@@ -69,54 +102,71 @@ function Card({ className = "", children }) {
   );
 }
 
-export default function AuditTrail({
-  entries = [],
+function IntegrationCard({ icon, title, description, actionLabel, onAction }) {
+  return (
+    <Card className="flex flex-col p-8">
+      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#e4f3fb] text-[#0693c7]">
+        {icon}
+      </div>
+      <h2 className="mt-6 text-xl font-bold leading-7 text-[#021820]">
+        {title}
+      </h2>
+      <p className="mt-4 text-sm leading-[22px] text-[#637a8a]">
+        {description}
+      </p>
+      <div className="mt-5">
+        <button
+          type="button"
+          onClick={() => onAction?.()}
+          className={`h-11 rounded-lg bg-[#3dc0f0] px-8 text-[13px] font-bold text-white transition-colors hover:bg-[#2fb0e0] ${FOCUS}`}
+        >
+          {actionLabel}
+        </button>
+      </div>
+    </Card>
+  );
+}
+
+export default function Integrations({
+  activity = [],
   month = CURRENT_MONTH,
   loading = false,
   error = null,
+  onPreviewPayrollImport,
+  onExportLedgerData,
 }) {
   const [query, setQuery] = useState("");
-  const [actionFilter, setActionFilter] = useState("All");
+  const [statusFilter, setStatusFilter] = useState("All");
   const [page, setPage] = useState(1);
 
-  const sorted = useMemo(
-    () =>
-      [...entries].sort(
-        (a, b) =>
-          (parseTimestamp(b.timestamp).getTime() || 0) -
-          (parseTimestamp(a.timestamp).getTime() || 0),
-      ),
-    [entries],
-  );
-
-  const actions = useMemo(
+  const statuses = useMemo(
     () => [
       ...new Set([
-        ...ACTION_OPTIONS,
-        ...entries.map((e) => e.action).filter(Boolean),
+        ...STATUS_OPTIONS,
+        ...activity.map((a) => a.status).filter(Boolean),
       ]),
     ],
-    [entries],
+    [activity],
   );
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return sorted.filter((e) => {
-      if (actionFilter !== "All" && e.action !== actionFilter) return false;
+    return activity.filter((a) => {
+      if (statusFilter !== "All" && a.status !== statusFilter) return false;
       if (!q) return true;
       return (
-        String(e.user ?? "")
+        String(a.module ?? "")
           .toLowerCase()
           .includes(q) ||
-        String(e.action ?? "")
+        String(a.activity ?? "")
           .toLowerCase()
           .includes(q) ||
-        String(e.reference ?? "")
+        String(a.status ?? "")
           .toLowerCase()
           .includes(q)
       );
     });
-  }, [sorted, query, actionFilter]);
+  }, [activity, query, statusFilter]);
 
   const totalPages = Math.max(1, Math.ceil(visible.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
@@ -130,21 +180,39 @@ export default function AuditTrail({
           FINANCE WORKSPACE / {month.toUpperCase()}
         </p>
         <h1 className="text-[32px] font-bold leading-10 text-[#021820]">
-          A record of every decision.
+          Connected records. Clear boundaries.
         </h1>
         <p className="text-xs leading-[18px] text-[#637a8a]">
-          Trace approvals, changes, and exports to the person behind them.
+          Exchange relevant data with the existing payroll and analytics
+          modules.
         </p>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <IntegrationCard
+          icon={<UsersGlyph />}
+          title="Payroll module"
+          description="Import summarized salary expenses for review and posting. Payroll processing remains in the existing module."
+          actionLabel="Preview payroll import"
+          onAction={onPreviewPayrollImport}
+        />
+        <IntegrationCard
+          icon={<BarsGlyph />}
+          title="Business analytics"
+          description="Export approved ledger records for the existing analytics environment. Keep reporting connected to the books."
+          actionLabel="Export ledger data"
+          onAction={onExportLedgerData}
+        />
       </div>
 
       <Card className="overflow-hidden">
         <div className="flex flex-wrap items-center gap-3 p-5">
           <h2 className="mr-2 text-[19px] font-bold leading-7 text-[#021820]">
-            Activity history
+            Exchange activity
           </h2>
 
           <label className="relative min-w-[220px] flex-1 sm:max-w-[360px]">
-            <span className="sr-only">Search activity history</span>
+            <span className="sr-only">Search exchange activity</span>
             <Icon
               name="search"
               className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#637a8a]"
@@ -162,19 +230,19 @@ export default function AuditTrail({
           </label>
 
           <label className="relative">
-            <span className="sr-only">Filter by action</span>
+            <span className="sr-only">Filter by status</span>
             <select
-              value={actionFilter}
+              value={statusFilter}
               onChange={(e) => {
-                setActionFilter(e.target.value);
+                setStatusFilter(e.target.value);
                 setPage(1);
               }}
               className="h-10 cursor-pointer appearance-none rounded-lg bg-[#e4f3fb] pl-3 pr-8 text-[13px] font-medium text-[#0a6fa6] outline-none focus-visible:ring-2 focus-visible:ring-[#0693c7]"
             >
               <option value="All">All records</option>
-              {actions.map((a) => (
-                <option key={a} value={a}>
-                  {a}
+              {statuses.map((s) => (
+                <option key={s} value={s}>
+                  {s}
                 </option>
               ))}
             </select>
@@ -198,10 +266,10 @@ export default function AuditTrail({
           <table className="w-full min-w-[820px] border-collapse text-left text-[13px]">
             <thead>
               <tr className="bg-[#f3f6f8] text-[10px] font-bold uppercase leading-4 text-[#637a8a]">
-                <th className="w-[13%] px-5 py-3">Timestamp</th>
-                <th className="w-[13%] px-4 py-3">User</th>
-                <th className="w-[26%] px-4 py-3">Action</th>
-                <th className="px-4 py-3">Reference</th>
+                <th className="w-[11%] px-5 py-3">Date</th>
+                <th className="w-[16%] px-4 py-3">Module</th>
+                <th className="w-[31%] px-4 py-3">Activity</th>
+                <th className="px-4 py-3">Status</th>
               </tr>
             </thead>
             <tbody>
@@ -211,7 +279,7 @@ export default function AuditTrail({
                     colSpan={4}
                     className="px-5 py-14 text-center text-[#637a8a]"
                   >
-                    Loading activity history…
+                    Loading exchange activity…
                   </td>
                 </tr>
               )}
@@ -222,8 +290,8 @@ export default function AuditTrail({
                     colSpan={4}
                     className="px-5 py-14 text-center text-[#b0243f]"
                   >
-                    Couldn’t load activity history: {error}. Refresh the page to
-                    try again.
+                    Couldn’t load exchange activity: {error}. Refresh the page
+                    to try again.
                   </td>
                 </tr>
               )}
@@ -234,31 +302,38 @@ export default function AuditTrail({
                     colSpan={4}
                     className="px-5 py-14 text-center text-[#637a8a]"
                   >
-                    {entries.length === 0
-                      ? "No activity yet. Approvals, changes, and exports will appear here."
-                      : "No activity matches your search. Clear the search or choose another action."}
+                    {activity.length === 0
+                      ? "No exchange activity yet. Imports and exports will appear here."
+                      : "No activity matches your search. Clear the search or choose another status."}
                   </td>
                 </tr>
               )}
 
               {!loading &&
                 !error &&
-                pageRows.map((e, i) => (
+                pageRows.map((a, i) => (
                   <tr
-                    key={e.id ?? `${e.timestamp}-${e.user}-${pageStart + i}`}
+                    key={a.id ?? `${a.date}-${a.module}-${pageStart + i}`}
                     className={`transition-colors ${
-                      TINTED_ACTIONS.has(e.action)
+                      TINTED_STATUSES.has(a.status)
                         ? "bg-[#e9f4f9] hover:bg-[#e0eff6]"
                         : "bg-white hover:bg-[#f3f8fb]"
                     }`}
                   >
                     <td className="whitespace-nowrap px-5 py-5 font-bold text-[#0693c7]">
-                      {formatTimestamp(e.timestamp)}
+                      {formatDate(a.date)}
                     </td>
-                    <td className="px-4 py-5 text-[#021820]">{e.user}</td>
-                    <td className="px-4 py-5 text-[#021820]">{e.action}</td>
-                    <td className="px-4 py-5 text-[#021820]">
-                      {e.reference || "—"}
+                    <td className="px-4 py-5 text-[#021820]">{a.module}</td>
+                    <td className="px-4 py-5 text-[#021820]">{a.activity}</td>
+                    <td className="px-4 py-5">
+                      <span
+                        className={`inline-block rounded-md px-3 py-1.5 text-xs font-medium ${
+                          STATUS_STYLES[a.status] ||
+                          "bg-[#f3f6f8] text-[#637a8a]"
+                        }`}
+                      >
+                        {a.status}
+                      </span>
                     </td>
                   </tr>
                 ))}

@@ -1,4 +1,4 @@
-import AppShell from "./AppShell";
+import AppShell from "../layout/AppShell";
 
 export default function ModulePage({
   active,

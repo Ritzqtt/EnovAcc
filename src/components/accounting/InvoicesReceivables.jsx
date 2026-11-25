@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Icon } from "./AppShell";
+import { Icon } from "../layout/AppShell";
 
 const CURRENT_MONTH = new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" });
 

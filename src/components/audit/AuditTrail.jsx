@@ -1,47 +1,53 @@
 import { useMemo, useState } from "react";
-import { Icon } from "./AppShell";
+import { Icon } from "../layout/AppShell";
 
-const now = new Date();
-const CURRENT_MONTH = now.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+const CURRENT_MONTH = new Date().toLocaleDateString("en-US", {
+  month: "long",
+  year: "numeric",
+});
 
-const FILTERS = [
-  { value: "debit", label: "Debits" },
-  { value: "credit", label: "Credits" },
+const PAGE_SIZE = 15;
+
+const ACTION_OPTIONS = [
+  "Signed in",
+  "Submitted expense",
+  "Approved and posted journal",
+  "Recorded customer payment",
 ];
 
-const PAGE_SIZE = 10;
-
-const peso = new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP" });
+const TINTED_ACTIONS = new Set(["Signed in"]);
 
 const FOCUS =
   "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#02355d]";
 
 const pad = (n) => String(n).padStart(2, "0");
 
-function formatDate(value) {
-  const d = new Date(value);
+const plural = (count, word) => `${count} ${word}${count === 1 ? "" : "s"}`;
+
+const DATE_ONLY = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+function parseTimestamp(value) {
+  if (value instanceof Date) return value;
+  const m = DATE_ONLY.exec(String(value ?? ""));
+  return m
+    ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]))
+    : new Date(value);
+}
+
+function formatTimestamp(value) {
+  const d = parseTimestamp(value);
   if (Number.isNaN(d.getTime())) return String(value ?? "");
-  return `${pad(d.getDate())} ${d.toLocaleDateString("en-US", { month: "short" })} ${d.getFullYear()}`;
+  const date = `${pad(d.getDate())} ${d.toLocaleDateString("en-US", { month: "short" })} ${d.getFullYear()}`;
+  if (typeof value === "string" && DATE_ONLY.test(value)) return date;
+  return `${date} · ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-function amount(value) {
-  const n = Number(value || 0);
-  return n === 0 ? "—" : peso.format(n);
-}
-
-function exportCsv(rows, account) {
-  const esc = (v) => `"${String(v).replace(/"/g, '""')}"`;
+function exportCsv(rows) {
+  const esc = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
   const lines = [
-    ["Date", "Reference", "Description", "Debit", "Credit", "Balance"].map(esc).join(","),
+    ["Timestamp", "User", "Action", "Reference"].map(esc).join(","),
     ...rows.map((r) =>
-      [
-        formatDate(r.date),
-        r.reference,
-        r.description,
-        Number(r.debit || 0).toFixed(2),
-        Number(r.credit || 0).toFixed(2),
-        Number(r.balance || 0).toFixed(2),
-      ]
+      [formatTimestamp(r.timestamp), r.user, r.action, r.reference]
         .map(esc)
         .join(","),
     ),
@@ -50,52 +56,72 @@ function exportCsv(rows, account) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `general-ledger${account ? `-${account.code}` : ""}.csv`;
+  a.download = "audit-trail.csv";
   a.click();
   URL.revokeObjectURL(url);
 }
 
 function Card({ className = "", children }) {
   return (
-    <div className={`rounded-xl border border-[#dce5ea] bg-white ${className}`}>{children}</div>
+    <div className={`rounded-xl border border-[#dce5ea] bg-white ${className}`}>
+      {children}
+    </div>
   );
 }
 
-export default function GeneralLedger({
-  account = null,
-  movements = [],
+export default function AuditTrail({
+  entries = [],
+  month = CURRENT_MONTH,
   loading = false,
   error = null,
-  month = CURRENT_MONTH,
 }) {
   const [query, setQuery] = useState("");
-  const [filter, setFilter] = useState("All");
+  const [actionFilter, setActionFilter] = useState("All");
   const [page, setPage] = useState(1);
+
+  const sorted = useMemo(
+    () =>
+      [...entries].sort(
+        (a, b) =>
+          (parseTimestamp(b.timestamp).getTime() || 0) -
+          (parseTimestamp(a.timestamp).getTime() || 0),
+      ),
+    [entries],
+  );
+
+  const actions = useMemo(
+    () => [
+      ...new Set([
+        ...ACTION_OPTIONS,
+        ...entries.map((e) => e.action).filter(Boolean),
+      ]),
+    ],
+    [entries],
+  );
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return movements.filter((m) => {
-      if (filter === "debit" && !Number(m.debit || 0)) return false;
-      if (filter === "credit" && !Number(m.credit || 0)) return false;
+    return sorted.filter((e) => {
+      if (actionFilter !== "All" && e.action !== actionFilter) return false;
       if (!q) return true;
       return (
-        String(m.reference).toLowerCase().includes(q) ||
-        String(m.description).toLowerCase().includes(q) ||
-        formatDate(m.date).toLowerCase().includes(q)
+        String(e.user ?? "")
+          .toLowerCase()
+          .includes(q) ||
+        String(e.action ?? "")
+          .toLowerCase()
+          .includes(q) ||
+        String(e.reference ?? "")
+          .toLowerCase()
+          .includes(q)
       );
     });
-  }, [movements, query, filter]);
+  }, [sorted, query, actionFilter]);
 
   const totalPages = Math.max(1, Math.ceil(visible.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
   const pageStart = (currentPage - 1) * PAGE_SIZE;
   const pageRows = visible.slice(pageStart, pageStart + PAGE_SIZE);
-
-  const emptyMessage = !account
-    ? "Choose an account in the Chart of Accounts and select View ledger to see its posted movements."
-    : movements.length === 0
-      ? "No posted movements for this account yet."
-      : "No movements match your search. Clear the search or choose another filter.";
 
   return (
     <main className="flex flex-col gap-6 p-4 sm:p-8">
@@ -104,33 +130,21 @@ export default function GeneralLedger({
           FINANCE WORKSPACE / {month.toUpperCase()}
         </p>
         <h1 className="text-[32px] font-bold leading-10 text-[#021820]">
-          The complete accounting record.
+          A record of every decision.
         </h1>
         <p className="text-xs leading-[18px] text-[#637a8a]">
-          Approved transactions, organized by account and posting date.
-        </p>
-      </div>
-
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl bg-gradient-to-r from-[#02355d] to-[#046fc3] px-6 py-5 text-white">
-        <p className="text-2xl font-bold leading-8">
-          {account ? `${account.code} / ${account.name}` : "No account selected"}
-        </p>
-        <p className="text-[10px] font-bold uppercase leading-4 text-[#a7bfce]">
-          Closing balance
-        </p>
-        <p className="text-[clamp(2rem,3.5vw,3rem)] font-bold leading-[1.2]">
-          {peso.format(Number(account?.balance || 0))}
+          Trace approvals, changes, and exports to the person behind them.
         </p>
       </div>
 
       <Card className="overflow-hidden">
         <div className="flex flex-wrap items-center gap-3 p-5">
           <h2 className="mr-2 text-[19px] font-bold leading-7 text-[#021820]">
-            Posted movements
+            Activity history
           </h2>
 
           <label className="relative min-w-[220px] flex-1 sm:max-w-[360px]">
-            <span className="sr-only">Search movements</span>
+            <span className="sr-only">Search activity history</span>
             <Icon
               name="search"
               className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#637a8a]"
@@ -142,25 +156,25 @@ export default function GeneralLedger({
                 setQuery(e.target.value);
                 setPage(1);
               }}
-              placeholder="Search by date, reference or description"
+              placeholder="Search records"
               className="h-10 w-full rounded-lg bg-[#f3f6f8] pl-9 pr-3 text-[13px] text-[#021820] outline-none placeholder:text-[#637a8a] focus-visible:ring-2 focus-visible:ring-[#0693c7]"
             />
           </label>
 
           <label className="relative">
-            <span className="sr-only">Filter movements</span>
+            <span className="sr-only">Filter by action</span>
             <select
-              value={filter}
+              value={actionFilter}
               onChange={(e) => {
-                setFilter(e.target.value);
+                setActionFilter(e.target.value);
                 setPage(1);
               }}
               className="h-10 cursor-pointer appearance-none rounded-lg bg-[#e4f3fb] pl-3 pr-8 text-[13px] font-medium text-[#0a6fa6] outline-none focus-visible:ring-2 focus-visible:ring-[#0693c7]"
             >
               <option value="All">All records</option>
-              {FILTERS.map((f) => (
-                <option key={f.value} value={f.value}>
-                  {f.label}
+              {actions.map((a) => (
+                <option key={a} value={a}>
+                  {a}
                 </option>
               ))}
             </select>
@@ -172,7 +186,7 @@ export default function GeneralLedger({
 
           <button
             type="button"
-            onClick={() => exportCsv(visible, account)}
+            onClick={() => exportCsv(visible)}
             disabled={!visible.length}
             className={`ml-auto h-10 rounded-lg border border-[#dce5ea] bg-white px-5 text-[13px] font-bold text-[#021820] transition-colors hover:bg-[#f3f6f8] disabled:cursor-not-allowed disabled:opacity-50 ${FOCUS}`}
           >
@@ -184,55 +198,67 @@ export default function GeneralLedger({
           <table className="w-full min-w-[820px] border-collapse text-left text-[13px]">
             <thead>
               <tr className="bg-[#f3f6f8] text-[10px] font-bold uppercase leading-4 text-[#637a8a]">
-                <th className="px-5 py-3">Date</th>
+                <th className="w-[13%] px-5 py-3">Timestamp</th>
+                <th className="w-[13%] px-4 py-3">User</th>
+                <th className="w-[26%] px-4 py-3">Action</th>
                 <th className="px-4 py-3">Reference</th>
-                <th className="px-4 py-3">Description</th>
-                <th className="px-4 py-3">Debit</th>
-                <th className="px-4 py-3">Credit</th>
-                <th className="px-4 py-3">Balance</th>
               </tr>
             </thead>
             <tbody>
               {loading && (
                 <tr>
-                  <td colSpan={6} className="px-5 py-14 text-center text-[#637a8a]">
-                    Loading movements…
+                  <td
+                    colSpan={4}
+                    className="px-5 py-14 text-center text-[#637a8a]"
+                  >
+                    Loading activity history…
                   </td>
                 </tr>
               )}
 
               {!loading && error && (
                 <tr>
-                  <td colSpan={6} className="px-5 py-14 text-center text-[#b0243f]">
-                    Couldn’t load movements: {error}. Refresh the page to try again.
+                  <td
+                    colSpan={4}
+                    className="px-5 py-14 text-center text-[#b0243f]"
+                  >
+                    Couldn’t load activity history: {error}. Refresh the page to
+                    try again.
                   </td>
                 </tr>
               )}
 
               {!loading && !error && visible.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-5 py-14 text-center text-[#637a8a]">
-                    {emptyMessage}
+                  <td
+                    colSpan={4}
+                    className="px-5 py-14 text-center text-[#637a8a]"
+                  >
+                    {entries.length === 0
+                      ? "No activity yet. Approvals, changes, and exports will appear here."
+                      : "No activity matches your search. Clear the search or choose another action."}
                   </td>
                 </tr>
               )}
 
               {!loading &&
                 !error &&
-                pageRows.map((m, i) => (
+                pageRows.map((e, i) => (
                   <tr
-                    key={`${m.reference}-${pageStart + i}`}
-                    className="border-t border-[#dce5ea] transition-colors hover:bg-[#f3f8fb]"
+                    key={e.id ?? `${e.timestamp}-${e.user}-${pageStart + i}`}
+                    className={`transition-colors ${
+                      TINTED_ACTIONS.has(e.action)
+                        ? "bg-[#e9f4f9] hover:bg-[#e0eff6]"
+                        : "bg-white hover:bg-[#f3f8fb]"
+                    }`}
                   >
-                    <td className="whitespace-nowrap px-5 py-4 font-bold text-[#0693c7]">
-                      {formatDate(m.date)}
+                    <td className="whitespace-nowrap px-5 py-5 font-bold text-[#0693c7]">
+                      {formatTimestamp(e.timestamp)}
                     </td>
-                    <td className="px-4 py-4 text-[#021820]">{m.reference}</td>
-                    <td className="px-4 py-4 text-[#021820]">{m.description}</td>
-                    <td className="px-4 py-4 tabular-nums text-[#021820]">{amount(m.debit)}</td>
-                    <td className="px-4 py-4 tabular-nums text-[#021820]">{amount(m.credit)}</td>
-                    <td className="px-4 py-4 tabular-nums text-[#021820]">
-                      {peso.format(Number(m.balance || 0))}
+                    <td className="px-4 py-5 text-[#021820]">{e.user}</td>
+                    <td className="px-4 py-5 text-[#021820]">{e.action}</td>
+                    <td className="px-4 py-5 text-[#021820]">
+                      {e.reference || "—"}
                     </td>
                   </tr>
                 ))}
@@ -243,8 +269,8 @@ export default function GeneralLedger({
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#dce5ea] px-5 py-4 text-xs leading-[18px] text-[#637a8a]">
           <p>
             {visible.length === 0
-              ? "0 movements"
-              : `Showing ${pageStart + 1}–${pageStart + pageRows.length} of ${visible.length} ${visible.length === 1 ? "movement" : "movements"}`}
+              ? "0 records"
+              : `Showing ${pageStart + 1}–${pageStart + pageRows.length} of ${plural(visible.length, "record")}`}
           </p>
           <div className="flex items-center gap-3">
             <button

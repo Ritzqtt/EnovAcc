@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import NotificationPanel from "./NotificationPanel";
-import defaultProfile from "../assets/default-profile.jpg";
+import defaultProfile from "../../assets/default-profile.jpg";
 
 const MONTH_NAMES = [
   "January",

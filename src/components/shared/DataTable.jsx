@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Icon } from "./AppShell";
+import { Icon } from "../layout/AppShell";
 import Badge from "./Badge";
 
 const card = "rounded-xl border border-[#dce5ea] bg-white";

@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import BackgroundArrows from "../BackgroundArrows";
-import CashPositionCard from "../CashPositionCard";
-import GlassCard from "../GlassCard";
-import Logo from "../Logo";
-import MonthCloseCard from "../MonthCloseCard";
+import BackgroundArrows from "../shared/BackgroundArrows";
+import CashPositionCard from "../shared/CashPositionCard";
+import GlassCard from "../shared/GlassCard";
+import Logo from "../shared/Logo";
+import MonthCloseCard from "../shared/MonthCloseCard";
 import LoginFormPanel from "./LoginFormPanel";
-import ForgotPasswordPage from "../ForgotPasswordPage";
+import ForgotPasswordPage from "./ForgotPasswordPage";
 import { AUTH_MOTION } from "./authMotion";
 import "./auth-transition.css";
 
