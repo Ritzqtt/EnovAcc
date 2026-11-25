@@ -10,6 +10,7 @@ import InvoicesReceivables from './components/InvoicesReceivables'
 import BillsPayables from './components/BillsPayables'
 import Expenses from './components/Expenses'
 import BankReconciliation from './components/BankReconciliation'
+import FinancialReports from './components/FinancialReports'
 import AuthSurface from './components/auth/AuthSurface'
 import AccountSettings from './components/AccountSettings'
 import ChangePassword from './components/ChangePassword'
@@ -25,6 +26,7 @@ const PAGE_LABELS = {
   'bills-payables': 'Bills & Payables',
   expenses: 'Expenses',
   'bank-reconciliation': 'Bank Reconciliation',
+  'financial-reports': 'Financial Reports',
   'account-settings': 'Account Settings',
   'change-password': 'Change Password',
 }
@@ -421,6 +423,7 @@ function App() {
     'bills-payables': <BillsPayables />,
     expenses: <Expenses />,
     'bank-reconciliation': <BankReconciliation />,
+    'financial-reports': <FinancialReports />,
     'account-settings': (
       <AccountSettings {...moduleProps} onProfileUpdated={handleProfileUpdated} />
     ),
