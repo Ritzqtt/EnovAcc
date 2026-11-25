@@ -1,6 +1,6 @@
 # EnovAcc
 
-EnovAcc is a finance workspace built with React and Vite. It includes dashboard reporting, accounting modules, authentication flows, workspace management, and Supabase-backed profile data.
+EnovAcc is a web-based Financial Management System designed to centralize accounting operations, streamline financial transactions, automate financial reporting, and support Philippine tax computation for Enov8tive Technology Solutions Inc.
 
 ## Features
 
