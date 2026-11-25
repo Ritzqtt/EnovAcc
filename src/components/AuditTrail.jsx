@@ -5,6 +5,14 @@ const CURRENT_MONTH = new Date().toLocaleDateString("en-US", { month: "long", ye
 
 const PAGE_SIZE = 15;
 
+// Always offered in the filter, even before any data exists.
+const ACTION_OPTIONS = [
+  "Signed in",
+  "Submitted expense",
+  "Approved and posted journal",
+  "Recorded customer payment",
+];
+
 // Rows with these actions get the light blue row tint.
 const TINTED_ACTIONS = new Set(["Signed in"]);
 
@@ -57,7 +65,7 @@ function Card({ className = "", children }) {
 
 /**
  * entries: [{ id?, timestamp (ISO string or Date), user, action, reference }]
- * Shown newest first. The "All records" filter lists the actions found in the data.
+ * Shown newest first. The "All records" filter lists the usual actions plus any others found in the data.
  */
 export default function AuditTrail({
   entries = [],
@@ -78,7 +86,7 @@ export default function AuditTrail({
   );
 
   const actions = useMemo(
-    () => [...new Set(entries.map((e) => e.action).filter(Boolean))].sort(),
+    () => [...new Set([...ACTION_OPTIONS, ...entries.map((e) => e.action).filter(Boolean)])],
     [entries],
   );
 
@@ -165,7 +173,7 @@ export default function AuditTrail({
             type="button"
             onClick={() => exportCsv(visible)}
             disabled={!visible.length}
-            className={`h-10 rounded-lg border border-[#dce5ea] bg-white px-5 text-[13px] font-bold text-[#021820] transition-colors hover:bg-[#f3f6f8] disabled:cursor-not-allowed disabled:opacity-50 ${FOCUS}`}
+            className={`ml-auto h-10 rounded-lg border border-[#dce5ea] bg-white px-5 text-[13px] font-bold text-[#021820] transition-colors hover:bg-[#f3f6f8] disabled:cursor-not-allowed disabled:opacity-50 ${FOCUS}`}
           >
             Export
           </button>

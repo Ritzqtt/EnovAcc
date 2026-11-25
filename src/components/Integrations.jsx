@@ -10,6 +10,9 @@ const STATUS_STYLES = {
   Ready: "bg-[#e4f3fb] text-[#0a6fa6]",
 };
 
+// Always offered in the status filter, even before any data exists.
+const STATUS_OPTIONS = ["Available", "Ready"];
+
 // Rows with these statuses get the light blue row tint.
 const TINTED_STATUSES = new Set(["Available"]);
 
@@ -134,7 +137,7 @@ export default function Integrations({
   const [page, setPage] = useState(1);
 
   const statuses = useMemo(
-    () => [...new Set(activity.map((a) => a.status).filter(Boolean))].sort(),
+    () => [...new Set([...STATUS_OPTIONS, ...activity.map((a) => a.status).filter(Boolean)])],
     [activity],
   );
 
@@ -238,7 +241,7 @@ export default function Integrations({
             type="button"
             onClick={() => exportCsv(visible)}
             disabled={!visible.length}
-            className={`h-10 rounded-lg border border-[#dce5ea] bg-white px-5 text-[13px] font-bold text-[#021820] transition-colors hover:bg-[#f3f6f8] disabled:cursor-not-allowed disabled:opacity-50 ${FOCUS}`}
+            className={`ml-auto h-10 rounded-lg border border-[#dce5ea] bg-white px-5 text-[13px] font-bold text-[#021820] transition-colors hover:bg-[#f3f6f8] disabled:cursor-not-allowed disabled:opacity-50 ${FOCUS}`}
           >
             Export
           </button>

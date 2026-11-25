@@ -11,6 +11,9 @@ const STATUS_STYLES = {
   Inactive: "bg-[#f3f6f8] text-[#637a8a]",
 };
 
+// Always offered in the role filter, even before any data exists.
+const ROLE_OPTIONS = ["Administrator", "Finance Manager", "Accounting"];
+
 // Rows with these roles get the light blue row tint.
 const TINTED_ROLES = new Set(["Administrator"]);
 
@@ -47,7 +50,7 @@ function Card({ className = "", children }) {
 /**
  * users: [{ id?, full_name | name, email, role_name | role, status }]   status e.g. "Active" | "Inactive"
  * onInviteUser: () => void
- * The "All records" filter lists the statuses found in the data.
+ * The "All records" filter is by role: Administrator, Finance Manager, Accounting, plus any other role found in the data.
  */
 export default function UsersRoles({
   users = [],
@@ -57,18 +60,18 @@ export default function UsersRoles({
   onInviteUser,
 }) {
   const [query, setQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("All");
+  const [roleFilter, setRoleFilter] = useState("All");
   const [page, setPage] = useState(1);
 
-  const statuses = useMemo(
-    () => [...new Set(users.map((u) => u.status).filter(Boolean))].sort(),
+  const roles = useMemo(
+    () => [...new Set([...ROLE_OPTIONS, ...users.map(roleOf).filter(Boolean)])],
     [users],
   );
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
     return users.filter((u) => {
-      if (statusFilter !== "All" && u.status !== statusFilter) return false;
+      if (roleFilter !== "All" && roleOf(u) !== roleFilter) return false;
       if (!q) return true;
       return (
         nameOf(u).toLowerCase().includes(q) ||
@@ -76,7 +79,7 @@ export default function UsersRoles({
         roleOf(u).toLowerCase().includes(q)
       );
     });
-  }, [users, query, statusFilter]);
+  }, [users, query, roleFilter]);
 
   const totalPages = Math.max(1, Math.ceil(visible.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
@@ -103,7 +106,7 @@ export default function UsersRoles({
           onClick={() => onInviteUser?.()}
           className={`h-11 rounded-lg bg-[#3dc0f0] px-8 text-[13px] font-bold text-white transition-colors hover:bg-[#2fb0e0] ${FOCUS}`}
         >
-          + Invite user
+          + Add user
         </button>
       </div>
 
@@ -132,19 +135,19 @@ export default function UsersRoles({
           </label>
 
           <label className="relative">
-            <span className="sr-only">Filter by status</span>
+            <span className="sr-only">Filter by role</span>
             <select
-              value={statusFilter}
+              value={roleFilter}
               onChange={(e) => {
-                setStatusFilter(e.target.value);
+                setRoleFilter(e.target.value);
                 setPage(1);
               }}
               className="h-10 cursor-pointer appearance-none rounded-lg bg-[#e4f3fb] pl-3 pr-8 text-[13px] font-medium text-[#0a6fa6] outline-none focus-visible:ring-2 focus-visible:ring-[#0693c7]"
             >
               <option value="All">All records</option>
-              {statuses.map((s) => (
-                <option key={s} value={s}>
-                  {s}
+              {roles.map((r) => (
+                <option key={r} value={r}>
+                  {r}
                 </option>
               ))}
             </select>
@@ -158,7 +161,7 @@ export default function UsersRoles({
             type="button"
             onClick={() => exportCsv(visible)}
             disabled={!visible.length}
-            className={`h-10 rounded-lg border border-[#dce5ea] bg-white px-5 text-[13px] font-bold text-[#021820] transition-colors hover:bg-[#f3f6f8] disabled:cursor-not-allowed disabled:opacity-50 ${FOCUS}`}
+            className={`ml-auto h-10 rounded-lg border border-[#dce5ea] bg-white px-5 text-[13px] font-bold text-[#021820] transition-colors hover:bg-[#f3f6f8] disabled:cursor-not-allowed disabled:opacity-50 ${FOCUS}`}
           >
             Export
           </button>
@@ -196,7 +199,7 @@ export default function UsersRoles({
                   <td colSpan={4} className="px-5 py-14 text-center text-[#637a8a]">
                     {users.length === 0
                       ? "No members yet. Invite a user to give them access to this workspace."
-                      : "No members match your search. Clear the search or choose another status."}
+                      : "No members match your search. Clear the search or choose another role."}
                   </td>
                 </tr>
               )}
