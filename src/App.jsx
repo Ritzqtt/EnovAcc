@@ -5,6 +5,7 @@ import AppShell from './components/AppShell'
 import Dashboard from './components/Dashboard'
 import ChartOfAccounts from './components/ChartOfAccounts'
 import JournalEntries from './components/JournalEntries'
+import GeneralLedger from './components/GeneralLedger'
 import AuthSurface from './components/auth/AuthSurface'
 import AccountSettings from './components/AccountSettings'
 import ChangePassword from './components/ChangePassword'
@@ -15,6 +16,7 @@ const PAGE_LABELS = {
   dashboard: 'Dashboard',
   'chart-of-accounts': 'Chart of Accounts',
   'journal-entries': 'Journal Entries',
+  'general-ledger': 'General Ledger',
   'account-settings': 'Account Settings',
   'change-password': 'Change Password',
 }
@@ -75,7 +77,7 @@ function App() {
   const [loaderDone, setLoaderDone] = useState(false)
   // Success message shown on the sign in screen (e.g. after a password reset).
   const [authNotice, setAuthNotice] = useState('')
-  const [, setLedgerAccount] = useState(null)
+  const [ledgerAccount, setLedgerAccount] = useState(null)
 
   // Normalize the address bar once per full load.
   useEffect(() => {
@@ -400,12 +402,13 @@ function App() {
     'chart-of-accounts': (
       <ChartOfAccounts
         onViewLedger={(account) => {
-          setLedgerAccount(account.code)
+          setLedgerAccount(account)
           handleNavigate('General Ledger')
         }}
       />
     ),
     'journal-entries': <JournalEntries />,
+    'general-ledger': <GeneralLedger account={ledgerAccount} />,
     'account-settings': (
       <AccountSettings {...moduleProps} onProfileUpdated={handleProfileUpdated} />
     ),
