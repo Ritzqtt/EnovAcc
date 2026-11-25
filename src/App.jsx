@@ -3,6 +3,7 @@ import { supabase } from './lib/supabase'
 import InitialLoadingScreen from './components/InitialLoadingScreen'
 import AppShell from './components/AppShell'
 import Dashboard from './components/Dashboard'
+import ChartOfAccounts from './components/ChartOfAccounts'
 import AuthSurface from './components/auth/AuthSurface'
 import AccountSettings from './components/AccountSettings'
 import ChangePassword from './components/ChangePassword'
@@ -11,6 +12,7 @@ const BASE_PATH = (import.meta.env.BASE_URL || '/').replace(/\/$/, '')
 
 const PAGE_LABELS = {
   dashboard: 'Dashboard',
+  'chart-of-accounts': 'Chart of Accounts',
   'account-settings': 'Account Settings',
   'change-password': 'Change Password',
 }
@@ -71,6 +73,7 @@ function App() {
   const [loaderDone, setLoaderDone] = useState(false)
   // Success message shown on the sign in screen (e.g. after a password reset).
   const [authNotice, setAuthNotice] = useState('')
+  const [, setLedgerAccount] = useState(null)
 
   // Normalize the address bar once per full load.
   useEffect(() => {
@@ -392,6 +395,14 @@ function App() {
 
   const MODULES = {
     dashboard: <Dashboard />,
+    'chart-of-accounts': (
+      <ChartOfAccounts
+        onViewLedger={(account) => {
+          setLedgerAccount(account.code)
+          handleNavigate('General Ledger')
+        }}
+      />
+    ),
     'account-settings': (
       <AccountSettings {...moduleProps} onProfileUpdated={handleProfileUpdated} />
     ),
