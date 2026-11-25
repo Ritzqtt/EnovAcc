@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { Icon } from "../layout/AppShell";
 
 const CURRENT_MONTH = new Date().toLocaleDateString("en-US", {
@@ -15,7 +16,6 @@ const STATUS_STYLES = {
 };
 
 const ROLE_OPTIONS = ["Administrator", "Finance Manager", "Accounting"];
-const TINTED_ROLES = new Set(["Administrator"]);
 
 const FOCUS =
   "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#02355d]";
@@ -56,10 +56,14 @@ export default function UsersRoles({
   loading = false,
   error = null,
   onInviteUser,
+  onEditUser,
+  onResetPassword,
+  onDeleteUser,
 }) {
   const [query, setQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState("All");
   const [page, setPage] = useState(1);
+  const [menuPosition, setMenuPosition] = useState(null);
 
   const roles = useMemo(
     () => [...new Set([...ROLE_OPTIONS, ...users.map(roleOf).filter(Boolean)])],
@@ -175,13 +179,14 @@ export default function UsersRoles({
                 <th className="w-[30%] px-4 py-3">Email</th>
                 <th className="w-[15%] px-4 py-3">Role</th>
                 <th className="px-4 py-3">Status</th>
+                <th className="w-[80px] px-4 py-3 text-center">Action</th>
               </tr>
             </thead>
             <tbody>
               {loading && (
                 <tr>
                   <td
-                    colSpan={4}
+                    colSpan={5}
                     className="px-5 py-14 text-center text-[#637a8a]"
                   >
                     Loading workspace members…
@@ -192,7 +197,7 @@ export default function UsersRoles({
               {!loading && error && (
                 <tr>
                   <td
-                    colSpan={4}
+                    colSpan={5}
                     className="px-5 py-14 text-center text-[#b0243f]"
                   >
                     Couldn’t load workspace members: {error}. Refresh the page
@@ -204,7 +209,7 @@ export default function UsersRoles({
               {!loading && !error && visible.length === 0 && (
                 <tr>
                   <td
-                    colSpan={4}
+                    colSpan={5}
                     className="px-5 py-14 text-center text-[#637a8a]"
                   >
                     {users.length === 0
@@ -219,11 +224,7 @@ export default function UsersRoles({
                 pageRows.map((u, i) => (
                   <tr
                     key={u.id ?? `${u.email}-${pageStart + i}`}
-                    className={`transition-colors ${
-                      TINTED_ROLES.has(roleOf(u))
-                        ? "bg-[#e9f4f9] hover:bg-[#e0eff6]"
-                        : "bg-white hover:bg-[#f3f8fb]"
-                    }`}
+                    className="bg-white transition-colors hover:bg-[#f8fafc]"
                   >
                     <td className="px-5 py-5 font-bold text-[#0693c7]">
                       {nameOf(u)}
@@ -239,6 +240,77 @@ export default function UsersRoles({
                       >
                         {u.status}
                       </span>
+                    </td>
+                    <td className="relative px-4 py-5 text-center">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          if (menuPosition?.userId === u.id) {
+                            setMenuPosition(null);
+                            return;
+                          }
+
+                          const rect = e.currentTarget.getBoundingClientRect();
+
+                          setMenuPosition({
+                            userId: u.id,
+                            top: rect.bottom + 8,
+                            right: window.innerWidth - rect.right,
+                          });
+                        }}
+                        aria-label={`Actions for ${nameOf(u)}`}
+                        aria-expanded={menuPosition?.userId === u.id}
+                        className={`rounded-lg px-3 py-1 text-xl font-bold text-[#637a8a] hover:bg-[#f3f6f8] hover:text-[#021820] ${FOCUS}`}
+                      >
+                        ⋮
+                      </button>
+
+                      {menuPosition?.userId === u.id &&
+                        createPortal(
+                          <div
+                            style={{
+                              position: "fixed",
+                              top: menuPosition.top,
+                              right: menuPosition.right,
+                              zIndex: 99999,
+                            }}
+                            className="w-40 rounded-lg border border-[#dce5ea] bg-white py-1 text-left shadow-lg"
+                          >
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setMenuPosition(null);
+                                onEditUser?.(u);
+                              }}
+                              className="flex w-full items-center px-4 py-2.5 text-sm text-[#021820] hover:bg-[#f3f6f8]"
+                            >
+                              Edit
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setMenuPosition(null);
+                                onResetPassword?.(u);
+                              }}
+                              className="flex w-full items-center px-4 py-2.5 text-sm text-[#021820] hover:bg-[#f3f6f8]"
+                            >
+                              Reset Password
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setMenuPosition(null);
+                                onDeleteUser?.(u);
+                              }}
+                              className="flex w-full items-center px-4 py-2.5 text-sm text-red-600 hover:bg-red-50"
+                            >
+                              Delete
+                            </button>
+                          </div>,
+                          document.body,
+                        )}
                     </td>
                   </tr>
                 ))}

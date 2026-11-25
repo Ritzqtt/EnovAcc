@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useState } from "react";
 import { supabase } from "./lib/supabase";
 import useIdleTimeout from "./lib/useIdleTimeout";
+import { useWorkspaceUsers } from "./hooks/useWorkspaceUsers";
 import InitialLoadingScreen from "./components/loading/InitialLoadingScreen";
 import AppShell from "./components/layout/AppShell";
 import Dashboard from "./components/dashboard/Dashboard";
@@ -15,6 +16,9 @@ import FinancialReports from "./components/accounting/FinancialReports";
 import TaxSummaries from "./components/accounting/TaxSummaries";
 import Integrations from "./components/integrations/Integrations";
 import AuditTrail from "./components/audit/AuditTrail";
+import AddUserModal from "./components/admin/AddUserModal";
+import EditUserModal from "./components/admin/EditUserModal";
+import ResetPasswordModal from "./components/admin/ResetPasswordModal";
 import UsersRoles from "./components/admin/UsersRoles";
 import AuthSurface from "./components/auth/AuthSurface";
 import AccountSettings from "./components/settings/AccountSettings";
@@ -83,6 +87,82 @@ function friendlyOtpError(error) {
     return "Please wait a few seconds before requesting another code.";
   }
   return "We couldn't send the code. Try again.";
+}
+
+function UsersRolesPage() {
+  const { users, loading, error, refetch } = useWorkspaceUsers();
+  const [showAdd, setShowAdd] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedPasswordUser, setSelectedPasswordUser] = useState(null);
+
+  return (
+    <>
+      <UsersRoles
+        users={users}
+        loading={loading}
+        error={error}
+        onInviteUser={() => setShowAdd(true)}
+        onEditUser={(user) => setSelectedUser(user)}
+        onResetPassword={(user) => setSelectedPasswordUser(user)}
+        onDeleteUser={async (user) => {
+          const confirmed = window.confirm(
+            `Are you sure you want to delete ${user.full_name}?\n\nThis will permanently delete their account and profile. This action cannot be undone.`,
+          );
+
+          if (!confirmed) return;
+
+          try {
+            const { data, error } = await supabase.functions.invoke(
+              "delete-user",
+              {
+                body: {
+                  user_id: user.id,
+                },
+              },
+            );
+
+            if (error) {
+              let message = "Could not delete the user.";
+
+              try {
+                const body = await error.context.json();
+                if (body?.error) message = body.error;
+              } catch {}
+
+              throw new Error(message);
+            }
+
+            if (data?.error) {
+              throw new Error(data.error);
+            }
+
+            await refetch();
+
+            window.alert("User account deleted successfully.");
+          } catch (err) {
+            window.alert(err.message || "Could not delete the user.");
+          }
+        }}
+      />
+      {showAdd && (
+        <AddUserModal onClose={() => setShowAdd(false)} onCreated={refetch} />
+      )}
+      {selectedUser && (
+        <EditUserModal
+          user={selectedUser}
+          onClose={() => setSelectedUser(null)}
+          onUpdated={refetch}
+        />
+      )}
+      {selectedPasswordUser && (
+        <ResetPasswordModal
+          user={selectedPasswordUser}
+          onClose={() => setSelectedPasswordUser(null)}
+          onReset={refetch}
+        />
+      )}
+    </>
+  );
 }
 
 function App() {
@@ -412,7 +492,7 @@ function App() {
     "tax-summaries": <TaxSummaries />,
     integrations: <Integrations />,
     "audit-trail": <AuditTrail />,
-    "users-roles": <UsersRoles />,
+    "users-roles": <UsersRolesPage />,
     "account-settings": (
       <AccountSettings
         {...moduleProps}
