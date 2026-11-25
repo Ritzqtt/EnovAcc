@@ -8,6 +8,7 @@ import JournalEntries from './components/JournalEntries'
 import GeneralLedger from './components/GeneralLedger'
 import InvoicesReceivables from './components/InvoicesReceivables'
 import BillsPayables from './components/BillsPayables'
+import Expenses from './components/Expenses'
 import AuthSurface from './components/auth/AuthSurface'
 import AccountSettings from './components/AccountSettings'
 import ChangePassword from './components/ChangePassword'
@@ -21,6 +22,7 @@ const PAGE_LABELS = {
   'general-ledger': 'General Ledger',
   'invoices-receivables': 'Invoices & Receivables',
   'bills-payables': 'Bills & Payables',
+  expenses: 'Expenses',
   'account-settings': 'Account Settings',
   'change-password': 'Change Password',
 }
@@ -415,6 +417,7 @@ function App() {
     'general-ledger': <GeneralLedger account={ledgerAccount} />,
     'invoices-receivables': <InvoicesReceivables />,
     'bills-payables': <BillsPayables />,
+    expenses: <Expenses />,
     'account-settings': (
       <AccountSettings {...moduleProps} onProfileUpdated={handleProfileUpdated} />
     ),
