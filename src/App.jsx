@@ -4,6 +4,7 @@ import InitialLoadingScreen from './components/InitialLoadingScreen'
 import AppShell from './components/AppShell'
 import Dashboard from './components/Dashboard'
 import ChartOfAccounts from './components/ChartOfAccounts'
+import JournalEntries from './components/JournalEntries'
 import AuthSurface from './components/auth/AuthSurface'
 import AccountSettings from './components/AccountSettings'
 import ChangePassword from './components/ChangePassword'
@@ -13,6 +14,7 @@ const BASE_PATH = (import.meta.env.BASE_URL || '/').replace(/\/$/, '')
 const PAGE_LABELS = {
   dashboard: 'Dashboard',
   'chart-of-accounts': 'Chart of Accounts',
+  'journal-entries': 'Journal Entries',
   'account-settings': 'Account Settings',
   'change-password': 'Change Password',
 }
@@ -403,6 +405,7 @@ function App() {
         }}
       />
     ),
+    'journal-entries': <JournalEntries />,
     'account-settings': (
       <AccountSettings {...moduleProps} onProfileUpdated={handleProfileUpdated} />
     ),
