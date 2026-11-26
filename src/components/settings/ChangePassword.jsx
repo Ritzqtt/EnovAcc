@@ -265,7 +265,7 @@ export default function ChangePassword({ currentUser }) {
             <button
               type="submit"
               disabled={!canSubmit}
-              className="h-10 rounded-lg bg-[#02355d] px-5 text-[13px] font-bold text-white transition-colors hover:bg-[#03487f] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#02355d] disabled:cursor-not-allowed disabled:bg-[#a7bfce]"
+              className="h-10 rounded-lg bg-[#38bdf8] px-5 text-[13px] font-bold text-white transition-colors hover:bg-[#0ea5e9] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0693c7] disabled:cursor-not-allowed disabled:bg-[#a7bfce]"
             >
               {saving ? "Updating…" : "Update password"}
             </button>

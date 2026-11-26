@@ -233,7 +233,7 @@ export default function ChartOfAccounts({
               <button
                 type="button"
                 onClick={onAddAccount}
-                className={`h-10 rounded-lg bg-[#02355d] px-5 text-[13px] font-bold text-white transition-colors hover:bg-[#03487f] ${FOCUS}`}
+                className={`h-10 rounded-lg bg-[#38bdf8] px-5 text-[13px] font-bold text-white transition-colors hover:bg-[#0ea5e9] ${FOCUS}`}
               >
                 New account
               </button>

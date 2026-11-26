@@ -521,12 +521,7 @@ function App() {
   };
 
   const MODULES = {
-    dashboard: (
-      <Dashboard
-        month={month}
-        onNewTransaction={() => handleNavigate("Journal Entries")}
-      />
-    ),
+    dashboard: <Dashboard month={month} onNavigate={handleNavigate} />,
     "chart-of-accounts": (
       <ChartOfAccounts
         month={month}
