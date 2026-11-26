@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useState } from "react";
 import { supabase } from "./lib/supabase";
 import useIdleTimeout from "./lib/useIdleTimeout";
 import { useWorkspaceUsers } from "./hooks/useWorkspaceUsers";
+import { useAuditLogs } from "./hooks/useAuditLogs";
 import InitialLoadingScreen from "./components/loading/InitialLoadingScreen";
 import AppShell from "./components/layout/AppShell";
 import Dashboard from "./components/dashboard/Dashboard";
@@ -94,6 +95,38 @@ function friendlyOtpError(error) {
     return "Please wait a few seconds before requesting another code.";
   }
   return "We couldn't send the code. Try again.";
+}
+
+async function logAuthEvent(action) {
+  const { error } = await supabase.rpc("log_auth_event", {
+    p_action: action,
+  });
+  if (error) console.error("Audit log failed:", error.message);
+}
+
+function AuditTrailPage({ month, currentUser }) {
+  const { entries, loading, error, refetch } = useAuditLogs();
+
+  const canDelete = currentUser?.role_name === "Finance Manager";
+
+  const handleDelete = async (ids) => {
+    const { error } = await supabase.rpc("delete_audit_logs", {
+      p_ids: ids,
+    });
+    if (error) throw new Error(error.message);
+    await refetch();
+  };
+
+  return (
+    <AuditTrail
+      month={month}
+      entries={entries}
+      loading={loading}
+      error={error}
+      canDelete={canDelete}
+      onDelete={handleDelete}
+    />
+  );
 }
 
 function UsersRolesPage({ month }) {
@@ -393,6 +426,8 @@ function App() {
       await supabase.auth.signOut({ scope: "local" });
       throw profileError;
     }
+
+    await logAuthEvent("Signed in");
   };
 
   const handleResendOtp = async (email) => {
@@ -439,6 +474,8 @@ function App() {
   };
 
   const handleSignOut = async () => {
+    await logAuthEvent("Signed out");
+
     const { error } = await supabase.auth.signOut();
 
     if (error) {
@@ -452,6 +489,8 @@ function App() {
   };
 
   const handleIdleLogout = async () => {
+    await logAuthEvent("Signed out");
+
     const { error } = await supabase.auth.signOut();
     if (error) await supabase.auth.signOut({ scope: "local" });
 
@@ -496,12 +535,12 @@ function App() {
     "general-ledger": <GeneralLedger account={ledgerAccount} month={month} />,
     "invoices-receivables": <InvoicesReceivables month={month} />,
     "bills-payables": <BillsPayables month={month} />,
-    "expenses": <Expenses month={month} />,
+    expenses: <Expenses month={month} />,
     "bank-reconciliation": <BankReconciliation month={month} />,
     "financial-reports": <FinancialReports month={month} />,
     "tax-summaries": <TaxSummaries month={month} />,
-    "integrations": <Integrations month={month} />,
-    "audit-trail": <AuditTrail month={month} />,
+    integrations: <Integrations month={month} />,
+    "audit-trail": <AuditTrailPage month={month} currentUser={currentUser} />,
     "users-roles": <UsersRolesPage month={month} />,
     "account-settings": (
       <AccountSettings

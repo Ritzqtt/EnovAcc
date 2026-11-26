@@ -15,10 +15,13 @@ const ACTION_OPTIONS = [
   "Recorded customer payment",
 ];
 
-const TINTED_ACTIONS = new Set(["Signed in"]);
+const TINTED_ACTIONS = new Set();
 
 const FOCUS =
   "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#02355d]";
+
+const CHECKBOX =
+  "h-4 w-4 cursor-pointer rounded border-[#dce5ea] accent-[#0693c7] disabled:cursor-not-allowed disabled:opacity-50";
 
 const pad = (n) => String(n).padStart(2, "0");
 
@@ -74,10 +77,17 @@ export default function AuditTrail({
   month = CURRENT_MONTH,
   loading = false,
   error = null,
+  canDelete = false,
+  onDelete,
 }) {
   const [query, setQuery] = useState("");
   const [actionFilter, setActionFilter] = useState("All");
   const [page, setPage] = useState(1);
+
+  const [selectMode, setSelectMode] = useState(false);
+  const [selected, setSelected] = useState(() => new Set());
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
   const sorted = useMemo(
     () =>
@@ -123,6 +133,58 @@ export default function AuditTrail({
   const pageStart = (currentPage - 1) * PAGE_SIZE;
   const pageRows = visible.slice(pageStart, pageStart + PAGE_SIZE);
 
+  const showSelect = canDelete && selectMode;
+  const columnCount = showSelect ? 5 : 4;
+
+  const visibleIds = useMemo(
+    () => visible.map((e) => e.id).filter(Boolean),
+    [visible],
+  );
+  const allSelected =
+    visibleIds.length > 0 && visibleIds.every((id) => selected.has(id));
+  const someSelected = selected.size > 0 && !allSelected;
+
+  const clearSelection = () => setSelected(new Set());
+
+  const exitSelectMode = () => {
+    setSelectMode(false);
+    clearSelection();
+    setDeleteError("");
+  };
+
+  const toggleAll = () => {
+    setSelected(allSelected ? new Set() : new Set(visibleIds));
+  };
+
+  const toggleOne = (id) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const handleDelete = async () => {
+    if (!selected.size || deleting) return;
+
+    const confirmed = window.confirm(
+      `Delete ${plural(selected.size, "audit record")}?\n\nThis permanently removes them from the activity history and cannot be undone.`,
+    );
+    if (!confirmed) return;
+
+    setDeleting(true);
+    setDeleteError("");
+    try {
+      await onDelete?.([...selected]);
+      exitSelectMode();
+    } catch (err) {
+      setDeleteError(err.message || "Could not delete the selected records.");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   return (
     <main className="flex min-w-0 flex-col gap-6 p-4 sm:p-6 lg:p-8">
       <div className="flex flex-col gap-1">
@@ -155,6 +217,7 @@ export default function AuditTrail({
               onChange={(e) => {
                 setQuery(e.target.value);
                 setPage(1);
+                clearSelection();
               }}
               placeholder="Search records"
               className="h-10 w-full rounded-lg bg-[#f3f6f8] pl-9 pr-3 text-[13px] text-[#021820] outline-none placeholder:text-[#637a8a] focus-visible:ring-2 focus-visible:ring-[#0693c7]"
@@ -168,6 +231,7 @@ export default function AuditTrail({
               onChange={(e) => {
                 setActionFilter(e.target.value);
                 setPage(1);
+                clearSelection();
               }}
               className="h-10 cursor-pointer appearance-none rounded-lg bg-[#e4f3fb] pl-3 pr-8 text-[13px] font-medium text-[#0a6fa6] outline-none focus-visible:ring-2 focus-visible:ring-[#0693c7]"
             >
@@ -184,20 +248,85 @@ export default function AuditTrail({
             />
           </label>
 
-          <button
-            type="button"
-            onClick={() => exportCsv(visible)}
-            disabled={!visible.length}
-            className={`ml-auto h-10 rounded-lg border border-[#dce5ea] bg-white px-5 text-[13px] font-bold text-[#021820] transition-colors hover:bg-[#f3f6f8] disabled:cursor-not-allowed disabled:opacity-50 ${FOCUS}`}
-          >
-            Export
-          </button>
+          <div className="ml-auto flex flex-wrap items-center gap-3">
+            {showSelect ? (
+              <>
+                <p
+                  className="text-xs font-medium text-[#637a8a]"
+                  aria-live="polite"
+                >
+                  {selected.size} selected
+                </p>
+                <button
+                  type="button"
+                  onClick={exitSelectMode}
+                  disabled={deleting}
+                  className={`h-10 rounded-lg border border-[#dce5ea] bg-white px-5 text-[13px] font-bold text-[#021820] transition-colors hover:bg-[#f3f6f8] disabled:cursor-not-allowed disabled:opacity-50 ${FOCUS}`}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  disabled={!selected.size || deleting}
+                  className={`h-10 rounded-lg bg-[#b0243f] px-5 text-[13px] font-bold text-white transition-colors hover:bg-[#961e36] disabled:cursor-not-allowed disabled:opacity-50 ${FOCUS}`}
+                >
+                  {deleting ? "Deleting…" : "Delete selected"}
+                </button>
+              </>
+            ) : (
+              <>
+                {canDelete && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectMode(true)}
+                    disabled={loading || !visible.length}
+                    className={`h-10 rounded-lg border border-[#dce5ea] bg-white px-5 text-[13px] font-bold text-[#b0243f] transition-colors hover:bg-[#f3f6f8] disabled:cursor-not-allowed disabled:opacity-50 ${FOCUS}`}
+                  >
+                    Delete
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => exportCsv(visible)}
+                  disabled={!visible.length}
+                  className={`h-10 rounded-lg border border-[#dce5ea] bg-white px-5 text-[13px] font-bold text-[#021820] transition-colors hover:bg-[#f3f6f8] disabled:cursor-not-allowed disabled:opacity-50 ${FOCUS}`}
+                >
+                  Export
+                </button>
+              </>
+            )}
+          </div>
         </div>
+
+        {deleteError && (
+          <p
+            role="alert"
+            className="px-5 pb-4 text-xs font-medium text-[#b0243f]"
+          >
+            {deleteError}
+          </p>
+        )}
 
         <div className="overflow-x-auto">
           <table className="w-full min-w-[820px] border-collapse text-left text-[13px]">
             <thead>
               <tr className="bg-[#f3f6f8] text-[10px] font-bold uppercase leading-4 text-[#637a8a]">
+                {showSelect && (
+                  <th className="w-12 px-5 py-3">
+                    <input
+                      type="checkbox"
+                      aria-label="Select all records"
+                      checked={allSelected}
+                      ref={(el) => {
+                        if (el) el.indeterminate = someSelected;
+                      }}
+                      onChange={toggleAll}
+                      disabled={deleting || !visibleIds.length}
+                      className={CHECKBOX}
+                    />
+                  </th>
+                )}
                 <th className="w-[13%] px-5 py-3">Timestamp</th>
                 <th className="w-[13%] px-4 py-3">User</th>
                 <th className="w-[26%] px-4 py-3">Action</th>
@@ -208,7 +337,7 @@ export default function AuditTrail({
               {loading && (
                 <tr>
                   <td
-                    colSpan={4}
+                    colSpan={columnCount}
                     className="px-5 py-14 text-center text-[#637a8a]"
                   >
                     Loading activity history…
@@ -219,7 +348,7 @@ export default function AuditTrail({
               {!loading && error && (
                 <tr>
                   <td
-                    colSpan={4}
+                    colSpan={columnCount}
                     className="px-5 py-14 text-center text-[#b0243f]"
                   >
                     Couldn’t load activity history: {error}. Refresh the page to
@@ -231,7 +360,7 @@ export default function AuditTrail({
               {!loading && !error && visible.length === 0 && (
                 <tr>
                   <td
-                    colSpan={4}
+                    colSpan={columnCount}
                     className="px-5 py-14 text-center text-[#637a8a]"
                   >
                     {entries.length === 0
@@ -243,25 +372,42 @@ export default function AuditTrail({
 
               {!loading &&
                 !error &&
-                pageRows.map((e, i) => (
-                  <tr
-                    key={e.id ?? `${e.timestamp}-${e.user}-${pageStart + i}`}
-                    className={`transition-colors ${
-                      TINTED_ACTIONS.has(e.action)
-                        ? "bg-[#e9f4f9] hover:bg-[#e0eff6]"
-                        : "bg-white hover:bg-[#f3f8fb]"
-                    }`}
-                  >
-                    <td className="whitespace-nowrap px-5 py-5 font-bold text-[#0693c7]">
-                      {formatTimestamp(e.timestamp)}
-                    </td>
-                    <td className="px-4 py-5 text-[#021820]">{e.user}</td>
-                    <td className="px-4 py-5 text-[#021820]">{e.action}</td>
-                    <td className="px-4 py-5 text-[#021820]">
-                      {e.reference || "—"}
-                    </td>
-                  </tr>
-                ))}
+                pageRows.map((e, i) => {
+                  const isSelected = showSelect && selected.has(e.id);
+                  return (
+                    <tr
+                      key={e.id ?? `${e.timestamp}-${e.user}-${pageStart + i}`}
+                      className={`transition-colors ${
+                        isSelected
+                          ? "bg-[#e9f4f9] hover:bg-[#e0eff6]"
+                          : TINTED_ACTIONS.has(e.action)
+                            ? "bg-[#e9f4f9] hover:bg-[#e0eff6]"
+                            : "bg-white hover:bg-[#f3f8fb]"
+                      }`}
+                    >
+                      {showSelect && (
+                        <td className="w-12 px-5 py-5">
+                          <input
+                            type="checkbox"
+                            aria-label={`Select record: ${e.action}`}
+                            checked={isSelected}
+                            onChange={() => toggleOne(e.id)}
+                            disabled={deleting || !e.id}
+                            className={CHECKBOX}
+                          />
+                        </td>
+                      )}
+                      <td className="whitespace-nowrap px-5 py-5 font-bold text-[#0693c7]">
+                        {formatTimestamp(e.timestamp)}
+                      </td>
+                      <td className="px-4 py-5 text-[#021820]">{e.user}</td>
+                      <td className="px-4 py-5 text-[#021820]">{e.action}</td>
+                      <td className="px-4 py-5 text-[#021820]">
+                        {e.reference || "—"}
+                      </td>
+                    </tr>
+                  );
+                })}
             </tbody>
           </table>
         </div>
