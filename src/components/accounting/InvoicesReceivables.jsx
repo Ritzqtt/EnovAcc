@@ -107,6 +107,7 @@ export default function InvoicesReceivables({
   month = CURRENT_MONTH,
   onRecordPayment,
   onViewInvoice,
+  onCreate,
 }) {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("All");
@@ -269,14 +270,23 @@ export default function InvoicesReceivables({
             />
           </label>
 
-          <button
-            type="button"
-            onClick={() => exportCsv(visible)}
-            disabled={!visible.length}
-            className={`ml-auto h-10 rounded-lg border border-[#dce5ea] bg-white px-5 text-[13px] font-bold text-[#021820] transition-colors hover:bg-[#f3f6f8] disabled:cursor-not-allowed disabled:opacity-50 ${FOCUS}`}
-          >
-            Export
-          </button>
+          <div className="ml-auto flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => exportCsv(visible)}
+              disabled={!visible.length}
+              className={`h-10 rounded-lg border border-[#dce5ea] bg-white px-5 text-[13px] font-bold text-[#021820] transition-colors hover:bg-[#f3f6f8] disabled:cursor-not-allowed disabled:opacity-50 ${FOCUS}`}
+            >
+              Export
+            </button>
+            <button
+              type="button"
+              onClick={onCreate}
+              className={`h-10 rounded-lg bg-[#38bdf8] px-5 text-[13px] font-bold text-white transition-colors hover:bg-[#0ea5e9] ${FOCUS}`}
+            >
+              Create invoice
+            </button>
+          </div>
         </div>
 
         <div className="overflow-x-auto">
