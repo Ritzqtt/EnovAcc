@@ -1,3 +1,6 @@
+import { useState } from "react";
+import NewTransactionModal from "./NewTransactionModal";
+
 const now = new Date();
 const CURRENT_MONTH = now.toLocaleDateString("en-US", {
   month: "long",
@@ -266,8 +269,9 @@ function ApprovalCard({ count, approval }) {
 export default function Dashboard({
   data = EMPTY_DATA,
   month = data.month,
-  onNewTransaction,
+  onNavigate,
 }) {
+  const [chooserOpen, setChooserOpen] = useState(false);
   const {
     cash,
     revenue,
@@ -300,7 +304,7 @@ export default function Dashboard({
         </div>
         <button
           type="button"
-          onClick={onNewTransaction}
+          onClick={() => setChooserOpen(true)}
           className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-lg bg-[#0693c7] px-5 text-[13px] font-bold text-white transition-colors hover:bg-[#057bab] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0693c7]"
         >
           New Transaction
@@ -365,6 +369,12 @@ export default function Dashboard({
         <MonthChart month={month} chart={chart} />
         <ApprovalCard count={awaiting.count} approval={approval} />
       </div>
+
+      <NewTransactionModal
+        open={chooserOpen}
+        onClose={() => setChooserOpen(false)}
+        onNavigate={onNavigate}
+      />
     </main>
   );
 }
