@@ -96,7 +96,7 @@ function friendlyOtpError(error) {
   return "We couldn't send the code. Try again.";
 }
 
-function UsersRolesPage() {
+function UsersRolesPage({ month }) {
   const { users, loading, error, refetch } = useWorkspaceUsers();
   const [showAdd, setShowAdd] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
@@ -105,6 +105,7 @@ function UsersRolesPage() {
   return (
     <>
       <UsersRoles
+        month={month}
         users={users}
         loading={loading}
         error={error}
@@ -495,11 +496,11 @@ function App() {
     "general-ledger": <GeneralLedger account={ledgerAccount} month={month} />,
     "invoices-receivables": <InvoicesReceivables month={month} />,
     "bills-payables": <BillsPayables month={month} />,
-    expenses: <Expenses month={month} />,
+    "expenses": <Expenses month={month} />,
     "bank-reconciliation": <BankReconciliation month={month} />,
     "financial-reports": <FinancialReports month={month} />,
     "tax-summaries": <TaxSummaries month={month} />,
-    integrations: <Integrations month={month} />,
+    "integrations": <Integrations month={month} />,
     "audit-trail": <AuditTrail month={month} />,
     "users-roles": <UsersRolesPage month={month} />,
     "account-settings": (
