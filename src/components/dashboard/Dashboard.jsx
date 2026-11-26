@@ -263,7 +263,11 @@ function ApprovalCard({ count, approval }) {
   );
 }
 
-export default function Dashboard({ data = EMPTY_DATA, month = data.month }) {
+export default function Dashboard({
+  data = EMPTY_DATA,
+  month = data.month,
+  onNewTransaction,
+}) {
   const {
     cash,
     revenue,
@@ -294,6 +298,13 @@ export default function Dashboard({ data = EMPTY_DATA, month = data.month }) {
             {data.dateLine}
           </p>
         </div>
+        <button
+          type="button"
+          onClick={onNewTransaction}
+          className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-lg bg-[#02355d] px-5 text-[13px] font-bold text-white transition-colors hover:bg-[#03487f] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#02355d]"
+        >
+          New Transaction
+        </button>
       </div>
 
       {}
