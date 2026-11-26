@@ -301,7 +301,7 @@ export default function Dashboard({
         <button
           type="button"
           onClick={onNewTransaction}
-          className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-lg bg-[#02355d] px-5 text-[13px] font-bold text-white transition-colors hover:bg-[#03487f] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#02355d]"
+          className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-lg bg-[#0693c7] px-5 text-[13px] font-bold text-white transition-colors hover:bg-[#057bab] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0693c7]"
         >
           New Transaction
         </button>
